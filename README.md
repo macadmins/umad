@@ -1,5 +1,8 @@
-# umad
-It does things. For now read the code
+# UMAD
+[U]ser-facing
+[M]DM
+[A]pproval
+[D]ialog
 
 ## Building this package
 You will need to use [munki-pkg](https://github.com/munki/munki-pkg) to build this package
