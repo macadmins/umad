@@ -16,7 +16,7 @@
 		<!--<string>/Some/Custom/Path/company_logo.png</string> -->
 		<!--<string>--nagsspath</string> -->
 		<!--<string>/Some/Custom/Path/nag_ss.png</string> -->
-		<!--<string>uasspath</string> -->
+		<!--<string>--uasspath</string> -->
 		<!--<string>/Some/Custom/Path/uamdm_ss.png</string> -->
 		<!-- -->
 		<!-- Text (Strings)-->
@@ -62,8 +62,6 @@
 		<!-- Integers -->
 		<!--<string>--cutoffdatewarning</string> -->
 		<!--<string>3</string> -->
-		<!--<string>--timebetweenwarnui</string> -->
-		<!--<string>15</string> -->
 		<!--<string>--timerday1</string> -->
 		<!--<string>600</string> -->
 		<!--<string>--timerday3</string> -->

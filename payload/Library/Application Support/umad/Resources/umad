@@ -360,12 +360,6 @@ def main():
                  default='Open System Preferences and approve Device '
                  'Management.',
                  help=('Required: Sys Prefs header 2 text.'))
-    o.add_option('--timebetweencutoffui',
-                 default=15,
-                 help=('Optional: Time in minutes between UI cutoff.'))
-    o.add_option('--timebetweenwarnui',
-                 default=15,
-                 help=('Optional: Time in minutes between UI warnings.'))
     o.add_option('--timerday1',
                  default=600,
                  help=('Optional: Time in seconds for 24-hour umad timer.'))
