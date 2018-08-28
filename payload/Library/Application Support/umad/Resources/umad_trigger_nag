@@ -1,0 +1,40 @@
+#!/usr/bin/python
+# encoding: utf-8
+import os
+import platform
+import subprocess
+
+
+def get_os_version():
+    """Return OS version."""
+    return platform.mac_ver()[0]
+
+
+def trigger_nag():
+    os_version_major = str('.'.join(get_os_version().split('.')[:2]))
+    if os_version_major in ['10.13', '10.14']:
+        cmd = ['/usr/bin/profiles', 'renew', '-type', 'enrollment']
+    else:
+        cmd = ['/usr/libexec/mdmclient', 'dep', 'nag']
+    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, err = run.communicate()
+    if err:
+        return False
+    else:
+        return True
+
+
+def main():
+    dot_path = '/private/var/tmp/umad/.trigger_nag'
+    if trigger_nag():
+        print 'Triggered nag - True'
+    else:
+        print 'Triggered nag - False'
+
+    # Stop this from happening all the time
+    if os.path.exists(dot_path):
+        os.remove(dot_path)
+
+
+if __name__ == '__main__':
+    main()

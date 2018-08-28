@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.erikng.nudge.trigger_nag</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Library/Application Support/nudge/Resources/nudge_trigger_nag</string>
+	</array>
+	<key>KeepAlive</key>
+  <dict>
+     <key>PathState</key>
+     <dict>
+       <key>/var/tmp/nudge/.trigger_nag</key>
+       <true/>
+     </dict>
+  </dict>
+  <key>OnDemand</key>
+  <true/>
+</dict>
+</plist>

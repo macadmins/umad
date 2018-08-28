@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.anothertoolappleshouldhaveprovided.umad.check_dep_record</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Library/Application Support/umad/Resources/umad_check_dep_record</string>
+	</array>
+	<key>KeepAlive</key>
+  <dict>
+     <key>PathState</key>
+     <dict>
+       <key>/var/tmp/umad/.check_dep_record</key>
+       <true/>
+     </dict>
+  </dict>
+  <key>OnDemand</key>
+  <true/>
+</dict>
+</plist>

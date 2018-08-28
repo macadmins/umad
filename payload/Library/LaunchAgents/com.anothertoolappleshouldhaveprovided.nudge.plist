@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.anothertoolappleshouldhaveprovided.umad</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Library/Application Support/umad/Resources/umad</string>
+		<!-- Cutoff Date (Strings) -->
+		<!--<string>--cutoffdate</string> -->
+		<!--<string>2018-12-31-17:00</string> -->
+		<!-- -->
+		<!-- Logos (Strings) -->
+		<!--<string>--logopath</string> -->
+		<!--<string>/Some/Custom/Path/company_logo.png</string> -->
+		<!--<string>--nagsspath</string> -->
+		<!--<string>/Some/Custom/Path/nag_ss.png</string> -->
+		<!--<string>uasspath</string> -->
+		<!--<string>/Some/Custom/Path/uamdm_ss.png</string> -->
+		<!-- -->
+		<!-- Text (Strings)-->
+		<!--<string>--duedatetext</string> -->
+		<!--<string>MDM Enrollment is required by 12/31/2018 (No Restart Required)</string> -->
+		<!--<string>--depfailuretext</string> -->
+		<!--<string>Not getting this notification?</string> -->
+		<!--<string>--depfailuresubtext</string> -->
+		<!--<string>You can also enroll manually below:</string> -->
+		<!--<string>--manualenrollmenttext</string> -->
+		<!--<string>Manual Enrollment Required</string> -->
+		<!--<string>--manualenrollh1text</string> -->
+		<!--<string>Want this box to go away?</string> -->
+		<!--<string>--manualenrollh2text</string> -->
+		<!--<string>Click on the Manual Enrollment button below.</string> -->
+		<!--<string>--paragraph1</string> -->
+		<!--<string>Enrollment into MDM is required to ensure that IT can protect your computer with basic security necessities like encryption and threat detection.</string> -->
+		<!--<string>--paragraph2</string> -->
+		<!--<string>If you do not enroll into MDM you will lose the ability to connect to Wi-Fi, VPN and Managed Software Center.</string> -->
+		<!--<string>--paragraph3</string> -->
+		<!--<string>To enroll, just look for the below notification, and click Details. Once prompted, log in with your username and password.</string> -->
+		<!--<string>--subtitletext</string> -->
+		<!--<string>A friendly reminder from your local IT team</string> -->
+		<!--<string>--sysprefsh1text</string> -->
+		<!--<string>Want this box to go away?</string> -->
+		<!--<string>--sysprefsh2text</string> -->
+		<!--<string>Open System Preferences and approve Device Management.</string> -->
+		<!--<string>--titletext</string> -->
+		<!--<string>MDM Enrollment</string> -->
+		<!--<string>--uamdmparagraph1</string> -->
+		<!--<string>Thank you for enrolling your device into MDM. We sincerely appreciate you doing this in a timely manner.</string> -->
+		<!--<string>--uamdmparagraph2</string> -->
+		<!--<string>Unfortunately, your device has been detected as only partially enrolled into our system.</string> -->
+		<!--<string>--uamdmparagraph3</string> -->
+		<!--<string>Please go to System Preferences -> Profiles, click on the Device Enrollment profile and click on the approve button.</string> -->
+		<!-- -->
+		<!-- URLs (Strings) -->
+		<!--<string>--manualenrollmenturl</string> -->
+		<!--<string>https://apple.com</string> -->
+		<!--<string>--moreinfourl</string> -->
+		<!--<string>https://google.com</string> -->
+		<!-- -->
+		<!-- Integers -->
+		<!--<string>--cutoffdatewarning</string> -->
+		<!--<int>3</int> -->
+		<!--<string>--timebetweenwarnui</string> -->
+		<!--<int>15</int> -->
+		<!--<string>--timerday1</string> -->
+		<!--<int>600</int> -->
+		<!--<string>--timerday3</string> -->
+		<!--<int>7200</int> -->
+		<!--<string>--timerelapsed</string> -->
+		<!--<int>10</int> -->
+		<!--<string>--timerfinal</string> -->
+		<!--<int>60</int> -->
+		<!--<string>--timerinital</string> -->
+		<!--<int>14400</int> -->
+		<!--<string>--timermdm</string> -->
+		<!--<int>5</int> -->
+		<!-- -->
+		<!-- Action_True -->
+		<!--<string>--enableenrollmentbutton</string> -->
+		<!--<string>--notimer</string> -->
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardOutPath</key>
+	<string>/Library/Application Support/umad/Logs/umad.log</string>
+	<key>StandardOutPath</key>
+	<string>/Library/Application Support/umad/Logs/umad.log</string>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Minute</key>
+		<integer>30</integer>
+	</dict>
+</dict>
+</plist>

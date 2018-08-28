@@ -1,0 +1,69 @@
+#!/usr/bin/python
+# encoding: utf-8
+#
+# Copyright 2009-2018 Erik Gomez.
+#
+# Licensed under the Apache License, Version 2.0 (the 'License');
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an 'AS IS' BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Loads the InstallApplications LaunchAgent LaunchDaemon
+from SystemConfiguration import SCDynamicStoreCopyConsoleUser
+import os
+import subprocess
+import sys
+
+
+def getconsoleuser():
+    cfuser = SCDynamicStoreCopyConsoleUser(None, None, None)
+    return cfuser
+
+
+def launchctl(*arg):
+    # Use *arg to pass unlimited variables to command.
+    cmd = arg
+    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, err = run.communicate()
+    return output
+
+
+def main():
+    # Make the Log path 777 to cheat - do this before loading LaunchAgent
+    umad_log_path = '/Library/Application Support/umad/Logs'
+    os.chmod(umad_log_path, 0o777)
+
+    lapath = os.path.join('/Library', 'LaunchAgents',
+                          'com.anothertoolappleshouldhaveprovided.umad.plist')
+    ldpath1 = os.path.join('/Library', 'LaunchDaemons',
+                           'com.anothertoolappleshouldhaveprovided.umad.check_dep_record.plist')
+    ldpath2 = os.path.join('/Library', 'LaunchDaemons',
+                           'com.anothertoolappleshouldhaveprovided.umad.trigger_nag.plist')
+    # Fail the install if the admin forgets to change their paths and they
+    # don't exist
+    for file in [lapath, ldpath1, ldpath2]:
+        if os.path.isfile(file):
+            pass
+        else:
+            print 'File does not exist: %s' % file
+            sys.exit(1)
+    currentuseruid = getconsoleuser()
+    launchctl('/bin/launchctl', 'load', ldpath1)
+    launchctl('/bin/launchctl', 'load', ldpath2)
+    if (currentuseruid[0] is None or currentuseruid[0] == u'loginwindow'
+            or currentuseruid[0] == u'_mbsetupuser'):
+        pass
+    else:
+        launchctl('/bin/launchctl', 'asuser', str(currentuseruid[1]),
+                  '/bin/launchctl', 'load', lapath)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,10 @@
+{
+    "distribution_style": true,
+    "identifier": "com.anothertoolappleshouldhaveprovided.umad",
+    "install_location": "/",
+    "name": "umad-${version}.pkg",
+    "ownership": "recommended",
+    "postinstall_action": "none",
+    "suppress_bundle_relocation": true,
+    "version": "1.0"
+}
