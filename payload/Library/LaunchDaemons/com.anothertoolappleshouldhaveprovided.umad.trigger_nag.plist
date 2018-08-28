@@ -3,16 +3,16 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.erikng.nudge.trigger_nag</string>
+	<string>com.anothertoolappleshouldhaveprovided.umad.trigger_nag</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Library/Application Support/nudge/Resources/nudge_trigger_nag</string>
+		<string>/Library/Application Support/umad/Resources/umad_trigger_nag</string>
 	</array>
 	<key>KeepAlive</key>
   <dict>
      <key>PathState</key>
      <dict>
-       <key>/var/tmp/nudge/.trigger_nag</key>
+       <key>/var/tmp/umad/.trigger_nag</key>
        <true/>
      </dict>
   </dict>
