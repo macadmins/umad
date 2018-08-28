@@ -61,21 +61,21 @@
 		<!-- -->
 		<!-- Integers -->
 		<!--<string>--cutoffdatewarning</string> -->
-		<!--<int>3</int> -->
+		<!--<string>3</string> -->
 		<!--<string>--timebetweenwarnui</string> -->
-		<!--<int>15</int> -->
+		<!--<string>15</string> -->
 		<!--<string>--timerday1</string> -->
-		<!--<int>600</int> -->
+		<!--<string>600</string> -->
 		<!--<string>--timerday3</string> -->
-		<!--<int>7200</int> -->
+		<!--<string>7200</string> -->
 		<!--<string>--timerelapsed</string> -->
-		<!--<int>10</int> -->
+		<!--<string>10</string> -->
 		<!--<string>--timerfinal</string> -->
-		<!--<int>60</int> -->
+		<!--<string>60</string> -->
 		<!--<string>--timerinital</string> -->
-		<!--<int>14400</int> -->
+		<!--<string>14400</string> -->
 		<!--<string>--timermdm</string> -->
-		<!--<int>5</int> -->
+		<!--<string>5</string> -->
 		<!-- -->
 		<!-- Action_True -->
 		<!--<string>--enableenrollmentbutton</string> -->
