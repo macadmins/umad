@@ -18,6 +18,9 @@
 ## Building this package
 You will need to use [munki-pkg](https://github.com/munki/munki-pkg) to build this package
 
+## Credits
+This tool would not be possible without [nibbler](https://github.com/pudquick/nibbler), written by [Michael Lynn](https://twitter.com/mikeymikey)
+
 ### Notes
 Because of the way git works, umad will not contain the `Logs` folder required for the postinstall to complete.
 
