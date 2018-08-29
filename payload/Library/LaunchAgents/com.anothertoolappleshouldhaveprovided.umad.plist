@@ -7,11 +7,14 @@
 	<key>ProgramArguments</key>
 	<array>
 		<string>/Library/Application Support/umad/Resources/umad</string>
-		<!-- Cutoff Date (Strings) -->
+		<!-- Cutoff Date -->
 		<!--<string>--cutoffdate</string> -->
 		<!--<string>2018-12-31-17:00</string> -->
+		<!-- Profile Identifier -->
+		<!--<string>--profileidentifier</string> -->
+		<!--<string>B68ABF1E-70E2-43B0-8300-AE65F9AFA330</string> -->
 		<!-- -->
-		<!-- Logos (Strings) -->
+		<!-- Logos -->
 		<!--<string>--logopath</string> -->
 		<!--<string>/Some/Custom/Path/company_logo.png</string> -->
 		<!--<string>--nagsspath</string> -->
@@ -19,7 +22,7 @@
 		<!--<string>--uasspath</string> -->
 		<!--<string>/Some/Custom/Path/uamdm_ss.png</string> -->
 		<!-- -->
-		<!-- Text (Strings)-->
+		<!-- Text-->
 		<!--<string>--duedatetext</string> -->
 		<!--<string>MDM Enrollment is required by 12/31/2018 (No Restart Required)</string> -->
 		<!--<string>--depfailuretext</string> -->
@@ -53,13 +56,13 @@
 		<!--<string>--uamdmparagraph3</string> -->
 		<!--<string>Please go to System Preferences -> Profiles, click on the Device Enrollment profile and click on the approve button.</string> -->
 		<!-- -->
-		<!-- URLs (Strings) -->
+		<!-- URLs -->
 		<!--<string>--manualenrollmenturl</string> -->
 		<!--<string>https://apple.com</string> -->
 		<!--<string>--moreinfourl</string> -->
 		<!--<string>https://google.com</string> -->
 		<!-- -->
-		<!-- Integers -->
+		<!-- Timers -->
 		<!--<string>--cutoffdatewarning</string> -->
 		<!--<string>3</string> -->
 		<!--<string>--timerday1</string> -->

@@ -350,6 +350,9 @@ def main():
                  'and click Details. Once prompted, log in with your '
                  'username and password.',
                  help=('Required: Paragraph 3 text.'))
+    o.add_option('--profileidentifier',
+                 default='B68ABF1E-70E2-43B0-8300-AE65F9AFA330',
+                 help=('Required: MDM profile identifier.'))
     o.add_option('--subtitletext',
                  default='A friendly reminder from your local IT team',
                  help=('Required: Sub-title text.'))
@@ -401,7 +404,7 @@ def main():
     opts, args = o.parse_args()
 
     global mdm_profile_identifier
-    mdm_profile_identifier = ''
+    mdm_profile_identifier = opts.profileidentifier
     global os_version
     os_version = get_os_version()
     global os_version_major
@@ -410,13 +413,15 @@ def main():
     mdm_enrolled = False
     uamdm_enrolled = False
 
+    if mdm_profile_identifier == 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330':
+        print 'WARN - Did not set mdm profile identifier!'
+
     # Check the OS and run our dep checks based on OS version
     if os_version_major in ['10.13', '10.14']:
         if LooseVersion(os_version) >= LooseVersion('10.13.4'):
             if check_mdm_status_modern()[2]:
                 print 'UAMDM enrolled device %s' % os_version
-                mdm_enrolled = True
-                exit(0)
+                uamdm_enrolled = True
             else:
                 # Check if MDM is installed.
                 if check_mdm_status_modern()[1]:
