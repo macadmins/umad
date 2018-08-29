@@ -45,30 +45,7 @@ class mdmTimerController(Foundation.NSObject):
     '''The MDM timer controller'''
     def checkMDMStatus_(self, timer_obj):
         '''check mdm status in a timer'''
-        print 'Checking mdm status'
-        # Check the OS and run our dep checks based on OS version
-        if os_version_major in ['10.13', '10.14']:
-            if LooseVersion(os_version) >= LooseVersion('10.13.4'):
-                if check_mdm_status_modern()[2]:
-                    print 'Validated mdm enrollment'
-                    umad.quit()
-                else:
-                    # Check if MDM is installed.
-                    if check_mdm_status_modern()[1]:
-                        print 'UAMDM not set, updating UI for user'
-                        update_umad_ui_uamdm(uamdmparagraph1, uamdmparagraph2,
-                                              uamdmparagraph3)
-            # 10.13.0 -> 10.13.3 machines should get here, so we exit here
-            else:
-                if check_mdm_high_sierra_legacy():
-                    print 'Validated mdm enrollment'
-                    umad.quit()
-        else:
-            # Anything lower than 10.13, we just check if the profile is
-            # installed
-            if check_mdm_legacy(mdm_profile_identifier):
-                print 'Validated mdm enrollment'
-                umad.quit()
+        check_mdm_status(True)
 
 
 def button_moreinfo():
@@ -99,6 +76,46 @@ def button_understand():
     umad.views['button.understand'].setHidden_(True)
     umad.views['button.ok'].setHidden_(False)
     umad.views['button.ok'].setEnabled_(True)
+
+
+def check_mdm_status(fromtimer):
+    '''Check MDM Status'''
+    print 'Checking mdm status'
+    uamdm_enrolled = False
+    mdm_enrolled = False
+    # Check the OS and run our dep checks based on OS version
+    if os_version_major in ['10.13', '10.14']:
+        if LooseVersion(os_version) >= LooseVersion('10.13.4'):
+            if check_mdm_status_modern()[2]:
+                print 'MDM enrolled device %s' % os_version
+                uamdm_enrolled = True
+                if fromtimer:
+                    umad.quit()
+            else:
+                # Check if MDM is installed.
+                if check_mdm_status_modern()[1]:
+                    print 'Non-UAMDM enrolled device, trigger UAMDM UI'
+                    mdm_enrolled = True
+                    uamdm_enrolled = False
+                    if fromtimer:
+                        update_umad_ui_uamdm(uamdmparagraph1, uamdmparagraph2,
+                                             uamdmparagraph3)
+        # 10.13.0 -> 10.13.3 machines should get here, so we exit here
+        else:
+            if check_mdm_high_sierra_legacy():
+                mdm_enrolled = True
+                print 'MDM enrolled device %s' % os_version
+                if fromtimer:
+                    umad.quit()
+    else:
+        # Anything lower than 10.13, we just check if the profile is
+        # installed
+        if check_mdm_legacy(mdm_profile_identifier):
+            mdm_enrolled = True
+            print 'MDM enrolled device %s' % os_version
+            if fromtimer:
+                umad.quit()
+    return uamdm_enrolled, mdm_enrolled
 
 
 def check_mdm_legacy(mdm_profile_identifier):
@@ -417,32 +434,12 @@ def main():
         print 'WARN - Did not set mdm profile identifier!'
 
     # Check the OS and run our dep checks based on OS version
-    if os_version_major in ['10.13', '10.14']:
-        if LooseVersion(os_version) >= LooseVersion('10.13.4'):
-            if check_mdm_status_modern()[2]:
-                print 'UAMDM enrolled device %s' % os_version
-                uamdm_enrolled = True
-            else:
-                # Check if MDM is installed.
-                if check_mdm_status_modern()[1]:
-                    mdm_enrolled = True
-                    uamdm_enrolled = False
-                    print 'Non-UAMDM enrolled device, trigger UAMDM UI'
-        # 10.13.0 -> 10.13.3 machines should get here, so we exit here
-        else:
-            if check_mdm_high_sierra_legacy():
-                mdm_enrolled = True
-                print 'MDM enrolled device %s' % os_version
-    else:
-        # Anything lower than 10.13, we just check if the profile is installed
-        if check_mdm_legacy(mdm_profile_identifier):
-            mdm_enrolled = True
-            print 'MDM enrolled device %s' % os_version
+    mdm_status = check_mdm_status(False)
 
-    if uamdm_enrolled:
+    if mdm_status[0]:
         exit(0)
     elif LooseVersion(os_version) < LooseVersion('10.13.4'):
-        if mdm_enrolled:
+        if mdm_status[1]:
             exit(0)
 
     # If we get here, device is not MDM enrolled - check if umad is already
