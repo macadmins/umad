@@ -299,6 +299,8 @@ def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
     umad.views['field.paragraph3'].setStringValue_(uamdm_p3)
     umad.views['image.nagscreen'].setImage_(uamdm_ss_nsimage)
     umad.views['button.sysprefs'].setHidden_(False)
+    umad.views['field.manualenrollmenttext'].setHidden_(True)
+    umad.views['image.nagscreen'].setHidden_(False)
     umad.views['field.depfailuretext'].setHidden_(False)
     umad.views['field.depfailuresubtext'].setHidden_(False)
     umad.views['field.depfailuretext'].setStringValue_(sysprefs_h1_text)
