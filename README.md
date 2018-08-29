@@ -15,6 +15,9 @@
 ### UAMDM
 ![Screenshot UAMDM](/images/ss_uamdm.png?raw=true)
 
+### Simplified Diagram
+![Simplified Diagram](/images/umad_diagram.png?raw=true)
+
 ## Building this package
 You will need to use [munki-pkg](https://github.com/munki/munki-pkg) to build this package
 
