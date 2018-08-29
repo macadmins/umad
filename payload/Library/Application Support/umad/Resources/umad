@@ -729,6 +729,9 @@ def main():
             umad.views['field.depfailuresubtext'].setStringValue_(
                 opts.depfailuresubtext)
 
+    # Do one final MDM check to instantly update the UI for UAMDM
+    check_mdm_status(True)
+
     umad.run()
 
 
