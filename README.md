@@ -90,6 +90,17 @@ Always show the manual enrollment button, DEP or not.
 <string>--enableenrollmentbutton</string>
 ```
 
+### Honor DND settings
+If a device is DEP capable, umad will not honor DoNotDisturb settings so the nag can actually appear.
+
+If the admin wants to honor DoNotDisturb for DEP devices, use this feature.
+
+Non-DEP devices will honor the users DND settings
+
+```xml
+<string>--honordndsettings</string>
+```
+
 ### Logo path
 A custom logo path. Alternatively, just replace the included company_logo.png
 ```xml

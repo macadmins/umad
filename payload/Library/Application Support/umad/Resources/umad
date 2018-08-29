@@ -16,7 +16,7 @@ from Foundation import (CFPreferencesAppSynchronize,
                         CFPreferencesSynchronize,
                         kCFPreferencesCurrentHost,
                         kCFPreferencesCurrentUser,
-                        NSBundle)
+                        NSBundle, NSUserNotificationCenter)
 from SystemConfiguration import SCDynamicStoreCopyConsoleUser
 import Foundation
 import multiprocessing
@@ -349,6 +349,9 @@ def main():
     o.add_option('--enableenrollmentbutton', default=False,
                  help='Optional: Enable enrollment button for device',
                  action='store_true')
+    o.add_option('--honordndsettings', default=False,
+                 help='Optional: Honor user DND settings (dont do this!)',
+                 action='store_true')
     o.add_option('--logopath',
                  default='company_logo.png',
                  help=('Optional: Path to company logo.'))
@@ -501,19 +504,21 @@ def main():
             or user_name == u'_mbsetupuser'):
         exit(0)
 
-    # Check DND status
-    original_dnd_status = do_not_disturb_isset()
-
     if not os.path.exists('/private/var/tmp/umad'):
         os.makedirs('/private/var/tmp/umad')
 
+    # Check DND status
+    original_dnd_status = do_not_disturb_isset()
+    dep_plist = os.path.join(main_umad_path, 'Resources/dep_record.plist')
     # Because of a wonderful bug, when we check the dep activation record,
-    # if the user hasn't enrolled, this will actually nag them, resulting in
-    # two nags when our actual tool runs - work around this by turning on DND
-    # even if it's not on
+    # if the user hasn't enrolled, this will actually nag them, resulting
+    # in two nags when our actual tool runs - work around this by turning
+    # on DND even if it's not on
     if not original_dnd_status:
         do_not_disturb_set_value(True)
         print 'Temporarily enabling DND for DEP activation record check'
+        # Restart Notification Center to have CFPreferences take effect
+        subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
 
     # Either we need to nag and show the umad DEP UI or we need show manual
     # enrollment UI - this unfortunately requires root access
@@ -522,31 +527,37 @@ def main():
         print 'Waiting for DEP record check...'
         time.sleep(1)
 
-    dep_plist = os.path.join(main_umad_path, 'Resources/dep_record.plist')
     if has_dep_activation_record(dep_plist):
         dep_capable = True
         print 'Device DEP capable - True'
         # We need to disable DND so the nag can show up
-        print 'Temporarily disabling DND for nag event.'
         do_not_disturb_set_value(False)
+        # get the default User Notification Center
+        user_nc = NSUserNotificationCenter.defaultUserNotificationCenter()
+        # remove any delivered notifications
+        user_nc.removeAllDeliveredNotifications()
     else:
         dep_capable = False
         print 'Device DEP capable - False'
 
     if dep_capable:
         # Trigger Nag event
+        # Force Notification center to refresh itself again
         touch('/private/var/tmp/umad/.trigger_nag')
         while os.path.exists('/private/var/tmp/umad/.trigger_nag'):
             print 'Waiting for nag event...'
             time.sleep(1)
+        subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
 
-    # Finally, let's be nice and honor the user's original DND value
-    if original_dnd_status:
-        print 'Re-enabling DND for user as it was previously set'
-        do_not_disturb_set_value(True)
-    else:
-        print 'Re-disabling DND for user as it was previously set'
-        do_not_disturb_set_value(False)
+    if opts.honordndsettings or not dep_capable:
+        # We will honor DND settings for non-DEP devices, unless the admin
+        # explicitly wants this- Otherwise the nag will actually disappear
+        # immediately
+        if original_dnd_status:
+            print 'Re-enabling DND for user as it was previously set'
+            do_not_disturb_set_value(True)
+            # Restart Notification Center to have CFPreferences take effect
+            subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
 
     # Use the paths defined, or default to pngs in the same local path of
     # umad
