@@ -512,11 +512,12 @@ def main():
         dep_capable = False
         print 'Device DEP capable - False'
 
-    # Trigger Nag event
-    touch('/private/var/tmp/umad/.trigger_nag')
-    while os.path.exists('/private/var/tmp/umad/.trigger_nag'):
-        print 'Waiting for nag event...'
-        time.sleep(1)
+    if dep_capable:
+        # Trigger Nag event
+        touch('/private/var/tmp/umad/.trigger_nag')
+        while os.path.exists('/private/var/tmp/umad/.trigger_nag'):
+            print 'Waiting for nag event...'
+            time.sleep(1)
 
     # Finally, let's be nice and honor the user's original DND value
     if original_dnd_status:
