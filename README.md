@@ -4,6 +4,17 @@
 [A]pproval
 [D]ialog
 
+## Important Infomation
+You most certainly want to customize the following values:
+
+- cutoffdate
+- duedatetext
+- manualenrollmenturl
+- moreinfourl
+- profileidentifier
+
+Also, you will at the very least want to change the `nag_ss.png`
+
 ## Screenshots
 
 ### DEP
@@ -163,6 +174,41 @@ This is the text for the third paragraph.
 ```xml
 <string>--paragraph3</string>
 <string>To enroll, just look for the below notification, and click Details. Once prompted, log in with your OneLogin username and password.</string>
+```
+
+### Profile identifier
+This is the profile identifier for < 10.13 machines to check for enrollment. Should you not set this value, umad will attempt to look for a profile installed on the machine with the _PayloadType_ of `com.apple.mdm`
+
+```xml
+<string>--profileidentifier</string>
+<string>B68ABF1E-70E2-43B0-8300-AE65F9AFA330</string>
+```
+
+To get this value, run the following command on a computer with your MDM profile installed: `profiles -C -o stdout-xml`
+
+Look for the MDM profile and notate the identifier. Some MDMs may use a UUID for this value.
+
+Some examples:
+```xml
+<dict>
+	<key>ProfileDescription</key>
+	<string>MDM profile</string>
+	<key>ProfileDisplayName</key>
+	<string>MDM Profile</string>
+	<key>ProfileIdentifier</key>
+	<string>220cad8d-c273-422f-afcb-9740857b38a0</string>
+</dict>
+```
+
+```xml
+<dict>
+	<key>ProfileDescription</key>
+	<string>MDM profile</string>
+	<key>ProfileDisplayName</key>
+	<string>MDM Profile</string>
+	<key>ProfileIdentifier</key>
+	<string>com.awesome.mdm.profile</string>
+</dict>
 ```
 
 ### Sub-title text
