@@ -453,6 +453,7 @@ def main():
     global mdm_profile_identifier
     mdm_profile_identifier = opts.profileidentifier
     main_umad_path = '/Library/Application Support/umad'
+    os_version = get_os_version()
 
     mdm_profile_set = bool(
         mdm_profile_identifier == 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
@@ -466,15 +467,20 @@ def main():
 
     if uamdm_enrolled:
         exit(0)
-    elif get_os_version() < LooseVersion('10.13.4'):
+    elif os_version < LooseVersion('10.13.4'):
         if mdm_enrolled:
             exit(0)
 
-    # If we get here, device is not MDM enrolled - check if umad is already
-    # running
+    # If we get here, device is not MDM enrolled or device is 10.13.4+
+    # without UAMDM - check if umad is already running
     if umad_already_loaded():
         print 'umad already loaded!'
         exit(0)
+
+    # We don't want to nag if device is UAMDM and DEP capable at the same time
+    # - at the very least, bad things happen with jamf Pro
+    skip_nag_check = bool(
+        os_version >= LooseVersion('10.13.4') and mdm_enrolled)
 
     # Attempt to load our umad globals
     load_umad_globals()
@@ -510,59 +516,62 @@ def main():
     if not os.path.exists(umad_tmp_dir):
         os.makedirs(umad_tmp_dir)
 
-    # Check DND status
-    original_dnd_status = do_not_disturb_isset()
-    dep_plist = os.path.join(main_umad_path, 'Resources/dep_record.plist')
-    # Because of a wonderful bug, when we check the dep activation record,
-    # if the user hasn't enrolled, this will actually nag them, resulting
-    # in two nags when our actual tool runs - work around this by turning
-    # on DND even if it's not on
-    if not original_dnd_status:
-        do_not_disturb_set_value(True)
-        print 'Temporarily enabling DND for DEP activation record check'
-        # Restart Notification Center to have CFPreferences take effect
-        restart_notification_center()
-
-    # Either we need to nag and show the umad DEP UI or we need show manual
-    # enrollment UI - this unfortunately requires root access
-    trigger_path = os.path.join(umad_tmp_dir, '.check_dep_record')
-    touch(trigger_path)
-    while os.path.exists(trigger_path):
-        print 'Waiting for DEP record check...'
-        time.sleep(1)
-
-    if has_dep_activation_record(dep_plist):
-        dep_capable = True
-        print 'Device DEP capable - True'
-        # We need to disable DND so the nag can show up
-        do_not_disturb_set_value(False)
-        # get the default User Notification Center
-        user_nc = NSUserNotificationCenter.defaultUserNotificationCenter()
-        # remove any delivered notifications
-        user_nc.removeAllDeliveredNotifications()
+    if skip_nag_check:
+        pass
     else:
-        dep_capable = False
-        print 'Device DEP capable - False'
-
-    if dep_capable:
-        # Trigger Nag event
-        # Force Notification center to refresh itself again
-        nag_trigger_path = os.path.join(umad_tmp_dir, '.trigger_nag')
-        touch(nag_trigger_path)
-        while os.path.exists(nag_trigger_path):
-            print 'Waiting for nag event...'
-            time.sleep(1)
-        restart_notification_center()
-
-    if opts.honordndsettings or not dep_capable:
-        # We will honor DND settings for non-DEP devices, unless the admin
-        # explicitly wants this- Otherwise the nag will actually disappear
-        # immediately
-        if original_dnd_status:
-            print 'Re-enabling DND for user as it was previously set'
+        # Check DND status
+        original_dnd_status = do_not_disturb_isset()
+        dep_plist = os.path.join(main_umad_path, 'Resources/dep_record.plist')
+        # Because of a wonderful bug, when we check the dep activation record,
+        # if the user hasn't enrolled, this will actually nag them, resulting
+        # in two nags when our actual tool runs - work around this by turning
+        # on DND even if it's not on
+        if not original_dnd_status:
             do_not_disturb_set_value(True)
+            print 'Temporarily enabling DND for DEP activation record check'
             # Restart Notification Center to have CFPreferences take effect
             restart_notification_center()
+
+        # Either we need to nag and show the umad DEP UI or we need show manual
+        # enrollment UI - this unfortunately requires root access
+        trigger_path = os.path.join(umad_tmp_dir, '.check_dep_record')
+        touch(trigger_path)
+        while os.path.exists(trigger_path):
+            print 'Waiting for DEP record check...'
+            time.sleep(1)
+
+        if has_dep_activation_record(dep_plist):
+            dep_capable = True
+            print 'Device DEP capable - True'
+            # We need to disable DND so the nag can show up
+            do_not_disturb_set_value(False)
+            # get the default User Notification Center
+            user_nc = NSUserNotificationCenter.defaultUserNotificationCenter()
+            # remove any delivered notifications
+            user_nc.removeAllDeliveredNotifications()
+        else:
+            dep_capable = False
+            print 'Device DEP capable - False'
+
+        if dep_capable:
+            # Trigger Nag event
+            # Force Notification center to refresh itself again
+            nag_trigger_path = os.path.join(umad_tmp_dir, '.trigger_nag')
+            touch(nag_trigger_path)
+            while os.path.exists(nag_trigger_path):
+                print 'Waiting for nag event...'
+                time.sleep(1)
+            restart_notification_center()
+
+        if opts.honordndsettings or not dep_capable:
+            # We will honor DND settings for non-DEP devices, unless the admin
+            # explicitly wants this- Otherwise the nag will actually disappear
+            # immediately
+            if original_dnd_status:
+                print 'Re-enabling DND for user as it was previously set'
+                do_not_disturb_set_value(True)
+                # Restart Notification Center to have CFPreferences take effect
+                restart_notification_center()
 
     # Use the paths defined, or default to pngs in the same local path of
     # umad
