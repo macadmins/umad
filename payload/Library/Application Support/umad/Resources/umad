@@ -385,7 +385,7 @@ def has_dep_activation_record(plist_path):
 
 
 def restart_notification_center():
-    '''Restart NotificationCenter by killing, letting LaunchD respawn."""
+    '''Restart NotificationCenter by killing, letting LaunchD respawn.'''
     subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
 
 def load_umad_globals():
@@ -420,6 +420,7 @@ def umad_already_loaded():
 
 
 def touch(path):
+    '''Touch a file'''
     try:
         touchfile = ['/usr/bin/touch', path]
         proc = subprocess.Popen(touchfile, stdout=subprocess.PIPE,
@@ -432,6 +433,7 @@ def touch(path):
 
 
 def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
+    '''Update the umad UI for UAMDM'''
     umad.views['field.paragraph1'].setStringValue_(uamdm_p1)
     umad.views['field.paragraph2'].setStringValue_(uamdm_p2)
     umad.views['field.paragraph3'].setStringValue_(uamdm_p3)
@@ -446,6 +448,7 @@ def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
 
 
 def main():
+    '''Main thread'''
     opts, _ = get_parsed_options()
     global mdm_profile_identifier
     mdm_profile_identifier = opts.profileidentifier
