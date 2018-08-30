@@ -495,8 +495,7 @@ def main():
     manualenroll_h2_text = opts.manualenrollh2text
 
     # Get the current username
-    user_name = get_console_username_info()[0]
-    current_user_uid = get_console_username_info()[1]
+    user_name, current_user_uid, _ = get_console_username_info()
 
     # Bail if we are not in a user session.
     if (user_name is None or user_name == u'loginwindow'
