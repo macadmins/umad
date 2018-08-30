@@ -82,7 +82,7 @@ def check_mdm_status(umadupdate):
     # Check the OS and run our dep checks based on OS version
     if get_os_version() >= LooseVersion('10.13.4'):
         if check_mdm_status_modern()[2]:
-            print 'MDM enrolled device %s' % os_version
+            print 'MDM enrolled device %s' % get_os_version()
             uamdm_enrolled = True
             if umadupdate:
                 umad.quit()
@@ -480,8 +480,13 @@ def main():
     # - at the very least, bad things happen with jamf Pro. If the admin does
     # not provide the profile identifier though, we don't know if the user
     # is on the wrong MDM.
-    skip_nag_check = bool(
-        get_os_version() >= LooseVersion('10.13.4') and mdm_enrolled and mdm_profile_set)
+    if mdm_profile_set:
+        skip_nag_check = bool(
+            get_os_version() >= LooseVersion('10.13.4') and mdm_enrolled and mdm_profile_set)
+    else:
+        print 'WARN - cannot validate enrolled MDM is correct!'
+        skip_nag_check = bool(
+            get_os_version() >= LooseVersion('10.13.4') and mdm_enrolled)
 
     # Attempt to load our umad globals
     load_umad_globals()
@@ -518,7 +523,8 @@ def main():
         os.makedirs(umad_tmp_dir)
 
     if skip_nag_check:
-        pass
+        # Trick logic into thinking device isn't DEP capable
+        dep_capable = False
     else:
         # Check DND status
         original_dnd_status = do_not_disturb_isset()
