@@ -480,7 +480,7 @@ def main():
     # We don't want to nag if device is UAMDM and DEP capable at the same time
     # - at the very least, bad things happen with jamf Pro
     skip_nag_check = bool(
-        os_version >= LooseVersion('10.13.4') and mdm_enrolled)
+        os_version >= LooseVersion('10.13.4') and mdm_enrolled and mdm_profile_set)
 
     # Attempt to load our umad globals
     load_umad_globals()
