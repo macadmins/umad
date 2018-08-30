@@ -2,31 +2,27 @@
 # -*- coding: utf-8 -*-
 '''umad - python wrapper for UAMDM/DEP enrollment and annoying the users to
 actually enroll.'''
-from nibbler import *
-
-import objc
 import optparse
-from AppKit import NSImage, NSApplication
-from datetime import datetime, timedelta
-from distutils.version import LooseVersion
-from Foundation import (CFPreferencesAppSynchronize,
-                        CFPreferencesCopyAppValue,
-                        CFPreferencesCopyValue,
-                        CFPreferencesSetValue,
-                        CFPreferencesSynchronize,
-                        kCFPreferencesCurrentHost,
-                        kCFPreferencesCurrentUser,
-                        NSBundle, NSUserNotificationCenter)
-from SystemConfiguration import SCDynamicStoreCopyConsoleUser
-import Foundation
-import multiprocessing
+import os
 import platform
 import plistlib
-import os
-import threading
-import time
 import subprocess
+import time
 import webbrowser
+from datetime import datetime
+from distutils.version import LooseVersion
+
+import Foundation
+import objc
+from AppKit import NSApplication, NSImage
+from Foundation import (CFPreferencesAppSynchronize, CFPreferencesCopyAppValue,
+                        CFPreferencesCopyValue, CFPreferencesSetValue,
+                        CFPreferencesSynchronize, NSBundle,
+                        NSUserNotificationCenter, kCFPreferencesCurrentHost,
+                        kCFPreferencesCurrentUser)
+from SystemConfiguration import SCDynamicStoreCopyConsoleUser
+
+from nibbler import *
 
 
 class timerController(Foundation.NSObject):
