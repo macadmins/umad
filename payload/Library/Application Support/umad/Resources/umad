@@ -227,7 +227,6 @@ def get_parsed_options():
     usage = '%prog [options]'
     o = optparse.OptionParser(usage=usage)
     o.add_option('--cutoffdate',
-                 default='2018-12-31-17:00',
                  help=('Required: UTC cutoff date 2018-12-31-17:00.'))
     o.add_option('--cutoffdatewarning',
                  default=3,
@@ -239,8 +238,7 @@ def get_parsed_options():
                  default='You can also enroll manually below:',
                  help=('Optional: DEP failure sub text.'))
     o.add_option('--duedatetext',
-                 default='MDM Enrollment is required by 12/31/2018 (No '
-                 'Restart Required)',
+                 default='MDM Enrollment is required (No Restart Required)',
                  help=('Required: Due date text.'))
     o.add_option('--enableenrollmentbutton', default=False,
                  help='Optional: Enable enrollment button for device',
@@ -252,7 +250,7 @@ def get_parsed_options():
                  default='company_logo.png',
                  help=('Optional: Path to company logo.'))
     o.add_option('--manualenrollmenturl',
-                 default='http://apple.com',
+                 default='https://apple.com',
                  help=('Required: Manual Enrollment URL.'))
     o.add_option('--manualenrollmenttext',
                  default='Manual Enrollment Required',
@@ -278,9 +276,8 @@ def get_parsed_options():
                  'like encryption and threat detection.',
                  help=('Required: Paragraph 1 text.'))
     o.add_option('--paragraph2',
-                 default='If you do not enroll into MDM you will lose the '
-                 'ability to connect to Wi-Fi, VPN and Managed Software '
-                 'Center.',
+                 default='If you do not enroll into MDM you may lose access '
+                 'to some items necessary for your day-to-day tasks.',
                  help=('Required: Paragraph 2 text.'))
     o.add_option('--paragraph3',
                  default='To enroll, just look for the below notification, '
@@ -456,6 +453,9 @@ def main():
 
     mdm_profile_set = bool(
         mdm_profile_identifier != 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
+    manual_enrollment_url_set = bool(
+        opts.manualenrollmenturl != 'https://apple.com')
+    more_info_url_set = bool(opts.moreinfourl != 'https://google.com')
     if not mdm_profile_set:
         print 'WARN - Did not set mdm profile identifier!'
 
@@ -726,6 +726,27 @@ def main():
         umad.views['button.ok'].setHidden_(False)
         umad.views['button.understand'].setHidden_(True)
 
+        # Enable manual enrollment too
+        if mdm_profile_set and manual_enrollment_url_set:
+            umad.views['button.manualenrollment'].setHidden_(False)
+        else:
+            umad.views['field.depfailuresubtext'].setStringValue_(
+                'Please contact your system administrator.')
+
+        if not more_info_url_set:
+            umad.views['button.moreinfo'].setHidden_(True)
+
+        umad.views['field.depfailuretext'].setHidden_(False)
+        umad.views['field.depfailuresubtext'].setHidden_(False)
+
+        # If you didn't specify any defaults and the device is not DEP capable
+        # it's really hard to have good data points
+        if not dep_capable:
+            print 'Did not specify any defaults and device is not DEP capable!'
+
+        timer = float(opts.timerday3)
+        date_diff_seconds = 1000000
+
     # Use cut off dates, but don't use the timer functionality
     if opts.notimer:
         umad.timer.invalidate()
@@ -748,7 +769,7 @@ def main():
 
     # If the device isn't dep capable, enable the manual enrollment button
     # Also if admin always wants the break glass option
-    if not dep_capable or opts.enableenrollmentbutton:
+    if (not dep_capable and mdm_profile_set) or opts.enableenrollmentbutton:
         umad.views['button.manualenrollment'].setHidden_(False)
         umad.views['field.manualenrollmenttext'].setHidden_(False)
         umad.views['image.nagscreen'].setHidden_(True)
