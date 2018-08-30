@@ -227,105 +227,6 @@ def get_os_version():
     return LooseVersion(platform.mac_ver()[0])
 
 
-def get_serial():
-    '''Get system serial number'''
-    # Credit to Michael Lynn
-    iokit_bundle = NSBundle.bundleWithIdentifier_("com.apple.framework.IOKit")
-    functions = [
-        ("IOServiceGetMatchingService", b"II@"),
-        ("IOServiceMatching", b"@*"),
-        ("IORegistryEntryCreateCFProperty", b"@I@@I")
-    ]
-    objc.loadBundleFunctions(iokit_bundle, globals(), functions)
-
-    kio_master_port_default = 0
-    kio_platform_serial_number_key = 'IOPlatformSerialNumber'
-    kcf_allocator_default = None
-
-    # pylint: disable=undefined-variable
-    platform_expert = IOServiceGetMatchingService(
-        kio_master_port_default,
-        IOServiceMatching("IOPlatformExpertDevice")
-    )
-    serial = IORegistryEntryCreateCFProperty(
-        platform_expert,
-        kio_platform_serial_number_key,
-        kcf_allocator_default,
-        0
-    )
-    # pylint: enable=undefined-variable
-    return serial
-
-
-def has_dep_activation_record(plist_path):
-    '''Check if we have a dep activation record'''
-    try:
-        plist = plistlib.readPlist(plist_path)
-    except:  # noqa
-        plist = {}
-    if not plist:
-        return False
-    else:
-        return True
-
-
-def load_umad_globals():
-    '''Try to figure out the path of umad.nib and load it.'''
-    try:
-        # Figure out the local path of umad
-        global umad_path
-        umad_path = os.path.dirname(os.path.realpath(__file__))
-        # Setup our global umad variable to inject into our nib file
-        global umad
-        umad = Nibbler(os.path.join(umad_path, 'umad.nib'))
-    except IOError:
-        print 'Unable to load umad nib file!'
-        exit(20)
-
-
-def umad_already_loaded():
-    '''Check if umad is already loaded'''
-    umad_string = '/Library/Application Support/umad/Resources/umad'
-    cmd = ['/bin/ps', '-o', 'pid', '-o', 'command']
-    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output, err = run.communicate()
-    status = output.split('\n')
-    current_pid = str(os.getpid())
-    for line in status:
-        if umad_string in line:
-            if current_pid in line:
-                pass
-            else:
-                return True
-    return False
-
-
-def touch(path):
-    try:
-        touchfile = ['/usr/bin/touch', path]
-        proc = subprocess.Popen(touchfile, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        touchfileoutput, err = proc.communicate()
-        os.chmod(path, 0777)
-        return touchfileoutput
-    except Exception:
-        return None
-
-
-def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
-    umad.views['field.paragraph1'].setStringValue_(uamdm_p1)
-    umad.views['field.paragraph2'].setStringValue_(uamdm_p2)
-    umad.views['field.paragraph3'].setStringValue_(uamdm_p3)
-    umad.views['image.nagscreen'].setImage_(uamdm_ss_nsimage)
-    umad.views['button.sysprefs'].setHidden_(False)
-    umad.views['field.manualenrollmenttext'].setHidden_(True)
-    umad.views['image.nagscreen'].setHidden_(False)
-    umad.views['field.depfailuretext'].setHidden_(False)
-    umad.views['field.depfailuresubtext'].setHidden_(False)
-    umad.views['field.depfailuretext'].setStringValue_(sysprefs_h1_text)
-    umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text)
-
-
 def get_parsed_options():
     """Return the parsed options and args for this application."""
     # Options
@@ -444,6 +345,105 @@ def get_parsed_options():
                  help=('Optional: Path to User Accepted MDM screenshot.'))
 
     return o.parse_args()
+
+
+def get_serial():
+    '''Get system serial number'''
+    # Credit to Michael Lynn
+    iokit_bundle = NSBundle.bundleWithIdentifier_("com.apple.framework.IOKit")
+    functions = [
+        ("IOServiceGetMatchingService", b"II@"),
+        ("IOServiceMatching", b"@*"),
+        ("IORegistryEntryCreateCFProperty", b"@I@@I")
+    ]
+    objc.loadBundleFunctions(iokit_bundle, globals(), functions)
+
+    kio_master_port_default = 0
+    kio_platform_serial_number_key = 'IOPlatformSerialNumber'
+    kcf_allocator_default = None
+
+    # pylint: disable=undefined-variable
+    platform_expert = IOServiceGetMatchingService(
+        kio_master_port_default,
+        IOServiceMatching("IOPlatformExpertDevice")
+    )
+    serial = IORegistryEntryCreateCFProperty(
+        platform_expert,
+        kio_platform_serial_number_key,
+        kcf_allocator_default,
+        0
+    )
+    # pylint: enable=undefined-variable
+    return serial
+
+
+def has_dep_activation_record(plist_path):
+    '''Check if we have a dep activation record'''
+    try:
+        plist = plistlib.readPlist(plist_path)
+    except:  # noqa
+        plist = {}
+    if not plist:
+        return False
+    else:
+        return True
+
+
+def load_umad_globals():
+    '''Try to figure out the path of umad.nib and load it.'''
+    try:
+        # Figure out the local path of umad
+        global umad_path
+        umad_path = os.path.dirname(os.path.realpath(__file__))
+        # Setup our global umad variable to inject into our nib file
+        global umad
+        umad = Nibbler(os.path.join(umad_path, 'umad.nib'))
+    except IOError:
+        print 'Unable to load umad nib file!'
+        exit(20)
+
+
+def umad_already_loaded():
+    '''Check if umad is already loaded'''
+    umad_string = '/Library/Application Support/umad/Resources/umad'
+    cmd = ['/bin/ps', '-o', 'pid', '-o', 'command']
+    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, err = run.communicate()
+    status = output.split('\n')
+    current_pid = str(os.getpid())
+    for line in status:
+        if umad_string in line:
+            if current_pid in line:
+                pass
+            else:
+                return True
+    return False
+
+
+def touch(path):
+    try:
+        touchfile = ['/usr/bin/touch', path]
+        proc = subprocess.Popen(touchfile, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        touchfileoutput, err = proc.communicate()
+        os.chmod(path, 0777)
+        return touchfileoutput
+    except Exception:
+        return None
+
+
+def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
+    umad.views['field.paragraph1'].setStringValue_(uamdm_p1)
+    umad.views['field.paragraph2'].setStringValue_(uamdm_p2)
+    umad.views['field.paragraph3'].setStringValue_(uamdm_p3)
+    umad.views['image.nagscreen'].setImage_(uamdm_ss_nsimage)
+    umad.views['button.sysprefs'].setHidden_(False)
+    umad.views['field.manualenrollmenttext'].setHidden_(True)
+    umad.views['image.nagscreen'].setHidden_(False)
+    umad.views['field.depfailuretext'].setHidden_(False)
+    umad.views['field.depfailuresubtext'].setHidden_(False)
+    umad.views['field.depfailuretext'].setStringValue_(sysprefs_h1_text)
+    umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text)
 
 
 def main():
