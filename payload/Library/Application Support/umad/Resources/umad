@@ -456,7 +456,7 @@ def main():
     os_version = get_os_version()
 
     mdm_profile_set = bool(
-        mdm_profile_identifier == 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
+        mdm_profile_identifier != 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
     if not mdm_profile_set:
         print 'WARN - Did not set mdm profile identifier!'
 
