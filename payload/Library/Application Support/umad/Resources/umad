@@ -504,8 +504,9 @@ def main():
     if user_name in (None, u'loginwindow', u'_mbsetupuser'):
         exit(0)
 
-    if not os.path.exists('/private/var/tmp/umad'):
-        os.makedirs('/private/var/tmp/umad')
+    umad_tmp_dir = '/private/var/tmp/umad'
+    if not os.path.exists(umad_tmp_dir):
+        os.makedirs(umad_tmp_dir)
 
     # Check DND status
     original_dnd_status = do_not_disturb_isset()
@@ -518,12 +519,13 @@ def main():
         do_not_disturb_set_value(True)
         print 'Temporarily enabling DND for DEP activation record check'
         # Restart Notification Center to have CFPreferences take effect
-        subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
+        kill_notification_center()
 
     # Either we need to nag and show the umad DEP UI or we need show manual
     # enrollment UI - this unfortunately requires root access
-    touch('/private/var/tmp/umad/.check_dep_record')
-    while os.path.exists('/private/var/tmp/umad/.check_dep_record'):
+    trigger_path = os.path.join(umad_tmp_dir, '.check_dep_record')
+    touch(trigger_path)
+    while os.path.exists(trigger_path):
         print 'Waiting for DEP record check...'
         time.sleep(1)
 
@@ -543,8 +545,9 @@ def main():
     if dep_capable:
         # Trigger Nag event
         # Force Notification center to refresh itself again
-        touch('/private/var/tmp/umad/.trigger_nag')
-        while os.path.exists('/private/var/tmp/umad/.trigger_nag'):
+        nag_trigger_path = os.path.join(umad_tmp_dir, '.trigger_nag')
+        touch(nag_trigger_path)
+        while os.path.exists(nag_trigger_path):
             print 'Waiting for nag event...'
             time.sleep(1)
         kill_notification_center()
