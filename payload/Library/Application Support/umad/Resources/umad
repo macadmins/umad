@@ -565,7 +565,7 @@ def main():
     # Use the paths defined, or default to pngs in the same local path of
     # umad
     for index, path in enumerate([opts.logopath, opts.nagsspath, opts.uasspath]):
-        if path == 'company_logo.png' or path == 'nag_ss.png' or path == 'uamdm_ss.png':
+        if path in ('company_logo.png', 'nag_ss.png', 'uamdm_ss.png'):
             local_png_path = os.path.join(
                 umad_path, path).replace(' ', '%20')
         else:
@@ -649,9 +649,6 @@ def main():
 
             # Bring back umad to the foreground, every 10 seconds
             timer = float(opts.timerelapsed)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
         elif date_diff_seconds <= 3600:
             # If the cutoff date is within one hour, get very agressive
 
@@ -663,9 +660,6 @@ def main():
             # Bring back umad to the foreground, every 60 seconds
             # (1 minute)
             timer = float(opts.timerfinal)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
         elif date_diff_seconds <= 86400:
             # If the cutoff date is within 86,400 seconds (24 hours), start
             # getting more agressive
@@ -678,9 +672,6 @@ def main():
             # reappear - bring back umad to the foreground, every
             # 600 seconds (10 minutes)
             timer = float(opts.timerday1)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
         elif cut_off_warn:
             # If the cutoff date is within 259,200 seconds (72 hours) or
             # whatever the admin set, start getting a bit more agressive
@@ -693,9 +684,6 @@ def main():
             # reappear - bring back umad to the foreground, every
             # 7,200 seconds (2 hours)
             timer = float(opts.timerday3)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
         else:
             # If the cutoff date is over 259,200 seconds (72 hours),
             # don't be that aggressive
@@ -708,9 +696,12 @@ def main():
             # reappear - bring back umad to the foreground, every
             # 14,400 seconds (4 hours)
             timer = float(opts.timerinital)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
+
+        umad.timer = (
+            Foundation
+            .NSTimer
+            .scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+                timer, umad.timer_controller, 'activateWindow:', None, True))
     else:
         # If you elect not to use a cutoff date, then the UI will only
         # appear one time per run, and only use the ok button
