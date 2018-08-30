@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 '''umad - python wrapper for UAMDM/DEP enrollment and annoying the users to
 actually enroll.'''
-import multiprocessing
 import optparse
 import os
 import platform
 import plistlib
 import subprocess
-import threading
 import time
 import webbrowser
-from datetime import datetime, timedelta
+from datetime import datetime
 from distutils.version import LooseVersion
 
 import Foundation
