@@ -725,8 +725,11 @@ def main():
     umad.mdm_timer_controller = mdmTimerController.alloc().init()
     mdm_timer = float(opts.timermdm)
     print 'MDM Timer is set to %s' % str(mdm_timer)
-    umad.mdm_timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-        mdm_timer, umad.mdm_timer_controller, 'checkMDMStatus:', None, True)
+    umad.mdm_timer = (
+        Foundation
+        .NSTimer
+        .scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            mdm_timer, umad.mdm_timer_controller, 'checkMDMStatus:', None, True))
 
     # Set up our window controller and delegate
     umad.hidden = True
