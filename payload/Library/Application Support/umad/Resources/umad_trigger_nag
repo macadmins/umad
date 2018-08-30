@@ -11,8 +11,8 @@ def get_os_version():
 
 
 def trigger_nag():
-    os_version_major = str('.'.join(get_os_version().split('.')[:2]))
-    if os_version_major in ['10.13', '10.14']:
+    os_version_major = int(get_os_version().split('.')[1])
+    if os_version_major >= 13:
         cmd = ['/usr/bin/profiles', 'renew', '-type', 'enrollment']
     else:
         cmd = ['/usr/libexec/mdmclient', 'dep', 'nag']
