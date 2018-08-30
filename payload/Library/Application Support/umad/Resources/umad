@@ -326,7 +326,8 @@ def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
     umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text)
 
 
-def main():
+def get_parsed_options():
+    """Return the parsed options and args for this application."""
     # Options
     usage = '%prog [options]'
     o = optparse.OptionParser(usage=usage)
@@ -442,8 +443,11 @@ def main():
                  default='uamdm_ss.png',
                  help=('Optional: Path to User Accepted MDM screenshot.'))
 
-    opts, args = o.parse_args()
+    return o.parse_args()
 
+
+def main():
+    opts, _ = get_parsed_options()
     global mdm_profile_identifier
     mdm_profile_identifier = opts.profileidentifier
     global os_version
