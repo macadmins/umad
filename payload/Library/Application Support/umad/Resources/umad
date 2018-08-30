@@ -388,6 +388,9 @@ def has_dep_activation_record(plist_path):
         return True
 
 
+def kill_notification_center():
+    subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
+
 def load_umad_globals():
     '''Try to figure out the path of umad.nib and load it.'''
     try:
@@ -544,7 +547,7 @@ def main():
         while os.path.exists('/private/var/tmp/umad/.trigger_nag'):
             print 'Waiting for nag event...'
             time.sleep(1)
-        subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
+        kill_notification_center()
 
     if opts.honordndsettings or not dep_capable:
         # We will honor DND settings for non-DEP devices, unless the admin
@@ -554,7 +557,7 @@ def main():
             print 'Re-enabling DND for user as it was previously set'
             do_not_disturb_set_value(True)
             # Restart Notification Center to have CFPreferences take effect
-            subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
+            kill_notification_center()
 
     # Use the paths defined, or default to pngs in the same local path of
     # umad
