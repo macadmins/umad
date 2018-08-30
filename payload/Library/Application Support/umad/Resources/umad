@@ -726,8 +726,7 @@ def main():
     mdm_timer = float(opts.timermdm)
     print 'MDM Timer is set to %s' % str(mdm_timer)
     umad.mdm_timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-        mdm_timer, umad.mdm_timer_controller, 'checkMDMStatus:', None,
-        True)
+        mdm_timer, umad.mdm_timer_controller, 'checkMDMStatus:', None, True)
 
     # Set up our window controller and delegate
     umad.hidden = True
@@ -744,16 +743,15 @@ def main():
         umad.views['field.depfailuresubtext'].setHidden_(False)
         umad.views['field.depfailuresubtext'].setStringValue_(
             manualenroll_h2_text)
-    else:
-        if date_diff_seconds <= 0:
-            umad.views['field.manualenrollmenttext'].setHidden_(True)
-            umad.views['image.nagscreen'].setHidden_(False)
-            umad.views['field.depfailuretext'].setHidden_(False)
-            umad.views['field.depfailuretext'].setStringValue_(
-                opts.depfailuretext)
-            umad.views['field.depfailuresubtext'].setHidden_(False)
-            umad.views['field.depfailuresubtext'].setStringValue_(
-                opts.depfailuresubtext)
+    elif date_diff_seconds <= 0:
+        umad.views['field.manualenrollmenttext'].setHidden_(True)
+        umad.views['image.nagscreen'].setHidden_(False)
+        umad.views['field.depfailuretext'].setHidden_(False)
+        umad.views['field.depfailuretext'].setStringValue_(
+            opts.depfailuretext)
+        umad.views['field.depfailuresubtext'].setHidden_(False)
+        umad.views['field.depfailuresubtext'].setStringValue_(
+            opts.depfailuresubtext)
 
     # Do one final MDM check to instantly update the UI for UAMDM
     check_mdm_status(True)
