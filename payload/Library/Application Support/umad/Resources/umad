@@ -121,28 +121,34 @@ def check_mdm_legacy(mdm_profile_identifier):
             plist = plistlib.readPlistFromString(output)
         except:  # noqa
             plist = {'_computerlevel': []}
-        for possible_plist in plist['_computerlevel']:
-            for item_content in possible_plist['ProfileItems']:
-                try:
-                    profile_type = item_content['PayloadType']
-                except KeyError:
-                    profile_type = ''
-                if profile_type == 'com.apple.mdm':
-                    return True
-        return False
+        try:
+            for possible_plist in plist['_computerlevel']:
+                for item_content in possible_plist['ProfileItems']:
+                    try:
+                        profile_type = item_content['PayloadType']
+                    except KeyError:
+                        profile_type = ''
+                    if profile_type == 'com.apple.mdm':
+                        return True
+            return False
+        except KeyError:
+            return False
     else:
         try:
             plist = plistlib.readPlistFromString(output)
         except:  # noqa
             plist = {'_computerlevel': []}
-        for possible_plist in plist['_computerlevel']:
-            try:
-                profile_uuid = possible_plist['ProfileIdentifier']
-            except KeyError:
-                profile_uuid = ''
-            if profile_uuid == mdm_profile_identifier:
-                return True
-        return False
+        try:
+            for possible_plist in plist['_computerlevel']:
+                try:
+                    profile_uuid = possible_plist['ProfileIdentifier']
+                except KeyError:
+                    profile_uuid = ''
+                if profile_uuid == mdm_profile_identifier:
+                    return True
+            return False
+        except KeyError:
+            return False
 
 
 def check_mdm_high_sierra_legacy():
