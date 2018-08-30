@@ -388,7 +388,8 @@ def has_dep_activation_record(plist_path):
         return True
 
 
-def kill_notification_center():
+def restart_notification_center():
+    '''Restart NotificationCenter by killing, letting LaunchD respawn."""
     subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
 
 def load_umad_globals():
@@ -519,7 +520,7 @@ def main():
         do_not_disturb_set_value(True)
         print 'Temporarily enabling DND for DEP activation record check'
         # Restart Notification Center to have CFPreferences take effect
-        kill_notification_center()
+        restart_notification_center()
 
     # Either we need to nag and show the umad DEP UI or we need show manual
     # enrollment UI - this unfortunately requires root access
@@ -550,7 +551,7 @@ def main():
         while os.path.exists(nag_trigger_path):
             print 'Waiting for nag event...'
             time.sleep(1)
-        kill_notification_center()
+        restart_notification_center()
 
     if opts.honordndsettings or not dep_capable:
         # We will honor DND settings for non-DEP devices, unless the admin
@@ -560,7 +561,7 @@ def main():
             print 'Re-enabling DND for user as it was previously set'
             do_not_disturb_set_value(True)
             # Restart Notification Center to have CFPreferences take effect
-            kill_notification_center()
+            restart_notification_center()
 
     # Use the paths defined, or default to pngs in the same local path of
     # umad
