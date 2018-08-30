@@ -218,8 +218,7 @@ def do_not_disturb_set_value(dnd_on_or_off):
 def get_console_username_info():
     '''Uses Apple's SystemConfiguration framework to get the current
     console username'''
-    cfuser = SCDynamicStoreCopyConsoleUser(None, None, None)
-    return cfuser
+    return SCDynamicStoreCopyConsoleUser(None, None, None)
 
 
 def get_os_version():
