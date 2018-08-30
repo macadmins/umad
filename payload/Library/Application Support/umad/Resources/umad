@@ -80,28 +80,29 @@ def check_mdm_status(umadupdate):
     uamdm_enrolled = False
     mdm_enrolled = False
     # Check the OS and run our dep checks based on OS version
-    if LooseVersion(os_version) >= LooseVersion('10.13.4'):
-        if check_mdm_status_modern()[2]:
-            print 'MDM enrolled device %s' % os_version
-            uamdm_enrolled = True
-            if umadupdate:
-                umad.quit()
-        else:
-            # Check if MDM is installed.
-            if check_mdm_status_modern()[1]:
-                print 'Non-UAMDM enrolled device, trigger UAMDM UI'
-                mdm_enrolled = True
-                uamdm_enrolled = False
+    if get_os_version >= LooseVersion('10.13'):
+        if get_os_version() >= LooseVersion('10.13.4'):
+            if check_mdm_status_modern()[2]:
+                print 'MDM enrolled device %s' % os_version
+                uamdm_enrolled = True
                 if umadupdate:
-                    update_umad_ui_uamdm(uamdmparagraph1, uamdmparagraph2,
-                                         uamdmparagraph3)
-    # 10.13.0 -> 10.13.3 machines should get here, so we exit here
-    elif LooseVersion(os_version) >= LooseVersion('10.13'):
-        if check_mdm_high_sierra_legacy():
-            mdm_enrolled = True
-            print 'MDM enrolled device %s' % os_version
-            if umadupdate:
-                umad.quit()
+                    umad.quit()
+            else:
+                # Check if MDM is installed.
+                if check_mdm_status_modern()[1]:
+                    print 'Non-UAMDM enrolled device, trigger UAMDM UI'
+                    mdm_enrolled = True
+                    uamdm_enrolled = False
+                    if umadupdate:
+                        update_umad_ui_uamdm(uamdmparagraph1, uamdmparagraph2,
+                                             uamdmparagraph3)
+        # 10.13.0 -> 10.13.3 machines should get here, so we exit here
+        else:
+            if check_mdm_high_sierra_legacy():
+                mdm_enrolled = True
+                print 'MDM enrolled device %s' % os_version
+                if umadupdate:
+                    umad.quit()
     else:
         # Anything lower than 10.13, we just check if the profile is
         # installed
@@ -213,115 +214,16 @@ def do_not_disturb_set_value(dnd_on_or_off):
 def get_console_username_info():
     '''Uses Apple's SystemConfiguration framework to get the current
     console username'''
-    cfuser = SCDynamicStoreCopyConsoleUser(None, None, None)
-    return cfuser
+    return SCDynamicStoreCopyConsoleUser(None, None, None)
 
 
 def get_os_version():
     """Return OS version."""
-    return platform.mac_ver()[0]
+    return LooseVersion(platform.mac_ver()[0])
 
 
-def get_serial():
-    '''Get system serial number'''
-    # Credit to Michael Lynn
-    iokit_bundle = NSBundle.bundleWithIdentifier_("com.apple.framework.IOKit")
-    functions = [
-        ("IOServiceGetMatchingService", b"II@"),
-        ("IOServiceMatching", b"@*"),
-        ("IORegistryEntryCreateCFProperty", b"@I@@I")
-    ]
-    objc.loadBundleFunctions(iokit_bundle, globals(), functions)
-
-    kio_master_port_default = 0
-    kio_platform_serial_number_key = 'IOPlatformSerialNumber'
-    kcf_allocator_default = None
-
-    # pylint: disable=undefined-variable
-    platform_expert = IOServiceGetMatchingService(
-        kio_master_port_default,
-        IOServiceMatching("IOPlatformExpertDevice")
-    )
-    serial = IORegistryEntryCreateCFProperty(
-        platform_expert,
-        kio_platform_serial_number_key,
-        kcf_allocator_default,
-        0
-    )
-    # pylint: enable=undefined-variable
-    return serial
-
-
-def has_dep_activation_record(plist_path):
-    '''Check if we have a dep activation record'''
-    try:
-        plist = plistlib.readPlist(plist_path)
-    except:  # noqa
-        plist = {}
-    if not plist:
-        return False
-    else:
-        return True
-
-
-def load_umad_globals():
-    '''Try to figure out the path of umad.nib and load it.'''
-    try:
-        # Figure out the local path of umad
-        global umad_path
-        umad_path = os.path.dirname(os.path.realpath(__file__))
-        # Setup our global umad variable to inject into our nib file
-        global umad
-        umad = Nibbler(os.path.join(umad_path, 'umad.nib'))
-    except IOError:
-        print 'Unable to load umad nib file!'
-        exit(20)
-
-
-def umad_already_loaded():
-    '''Check if umad is already loaded'''
-    umad_string = '/Library/Application Support/umad/Resources/umad'
-    cmd = ['/bin/ps', '-o', 'pid', '-o', 'command']
-    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output, err = run.communicate()
-    status = output.split('\n')
-    current_pid = str(os.getpid())
-    for line in status:
-        if umad_string in line:
-            if current_pid in line:
-                pass
-            else:
-                return True
-    return False
-
-
-def touch(path):
-    try:
-        touchfile = ['/usr/bin/touch', path]
-        proc = subprocess.Popen(touchfile, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        touchfileoutput, err = proc.communicate()
-        os.chmod(path, 0777)
-        return touchfileoutput
-    except Exception:
-        return None
-
-
-def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
-    umad.views['field.paragraph1'].setStringValue_(uamdm_p1)
-    umad.views['field.paragraph2'].setStringValue_(uamdm_p2)
-    umad.views['field.paragraph3'].setStringValue_(uamdm_p3)
-    umad.views['image.nagscreen'].setImage_(uamdm_ss_nsimage)
-    umad.views['button.sysprefs'].setHidden_(False)
-    umad.views['field.manualenrollmenttext'].setHidden_(True)
-    umad.views['image.nagscreen'].setHidden_(False)
-    umad.views['field.depfailuretext'].setHidden_(False)
-    umad.views['field.depfailuresubtext'].setHidden_(False)
-    umad.views['field.depfailuretext'].setStringValue_(sysprefs_h1_text)
-    umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text)
-
-
-def main():
+def get_parsed_options():
+    """Return the parsed options and args for this application."""
     # Options
     usage = '%prog [options]'
     o = optparse.OptionParser(usage=usage)
@@ -437,12 +339,119 @@ def main():
                  default='uamdm_ss.png',
                  help=('Optional: Path to User Accepted MDM screenshot.'))
 
-    opts, args = o.parse_args()
+    return o.parse_args()
 
+
+def get_serial():
+    '''Get system serial number'''
+    # Credit to Michael Lynn
+    iokit_bundle = NSBundle.bundleWithIdentifier_("com.apple.framework.IOKit")
+    functions = [
+        ("IOServiceGetMatchingService", b"II@"),
+        ("IOServiceMatching", b"@*"),
+        ("IORegistryEntryCreateCFProperty", b"@I@@I")
+    ]
+    objc.loadBundleFunctions(iokit_bundle, globals(), functions)
+
+    kio_master_port_default = 0
+    kio_platform_serial_number_key = 'IOPlatformSerialNumber'
+    kcf_allocator_default = None
+
+    # pylint: disable=undefined-variable
+    platform_expert = IOServiceGetMatchingService(
+        kio_master_port_default,
+        IOServiceMatching("IOPlatformExpertDevice")
+    )
+    serial = IORegistryEntryCreateCFProperty(
+        platform_expert,
+        kio_platform_serial_number_key,
+        kcf_allocator_default,
+        0
+    )
+    # pylint: enable=undefined-variable
+    return serial
+
+
+def has_dep_activation_record(plist_path):
+    '''Check if we have a dep activation record'''
+    try:
+        plist = plistlib.readPlist(plist_path)
+    except:  # noqa
+        plist = {}
+    if not plist:
+        return False
+    else:
+        return True
+
+
+def restart_notification_center():
+    '''Restart NotificationCenter by killing, letting LaunchD respawn.'''
+    subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
+
+def load_umad_globals():
+    '''Try to figure out the path of umad.nib and load it.'''
+    try:
+        # Figure out the local path of umad
+        global umad_path
+        umad_path = os.path.dirname(os.path.realpath(__file__))
+        # Setup our global umad variable to inject into our nib file
+        global umad
+        umad = Nibbler(os.path.join(umad_path, 'umad.nib'))
+    except IOError:
+        print 'Unable to load umad nib file!'
+        exit(20)
+
+
+def umad_already_loaded():
+    '''Check if umad is already loaded'''
+    umad_string = '/Library/Application Support/umad/Resources/umad'
+    cmd = ['/bin/ps', '-o', 'pid', '-o', 'command']
+    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, err = run.communicate()
+    status = output.split('\n')
+    current_pid = str(os.getpid())
+    for line in status:
+        if umad_string in line:
+            if current_pid in line:
+                pass
+            else:
+                return True
+    return False
+
+
+def touch(path):
+    '''Touch a file'''
+    try:
+        touchfile = ['/usr/bin/touch', path]
+        proc = subprocess.Popen(touchfile, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        touchfileoutput, err = proc.communicate()
+        os.chmod(path, 0777)
+        return touchfileoutput
+    except Exception:
+        return None
+
+
+def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
+    '''Update the umad UI for UAMDM'''
+    umad.views['field.paragraph1'].setStringValue_(uamdm_p1)
+    umad.views['field.paragraph2'].setStringValue_(uamdm_p2)
+    umad.views['field.paragraph3'].setStringValue_(uamdm_p3)
+    umad.views['image.nagscreen'].setImage_(uamdm_ss_nsimage)
+    umad.views['button.sysprefs'].setHidden_(False)
+    umad.views['field.manualenrollmenttext'].setHidden_(True)
+    umad.views['image.nagscreen'].setHidden_(False)
+    umad.views['field.depfailuretext'].setHidden_(False)
+    umad.views['field.depfailuresubtext'].setHidden_(False)
+    umad.views['field.depfailuretext'].setStringValue_(sysprefs_h1_text)
+    umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text)
+
+
+def main():
+    '''Main thread'''
+    opts, _ = get_parsed_options()
     global mdm_profile_identifier
     mdm_profile_identifier = opts.profileidentifier
-    global os_version
-    os_version = get_os_version()
     main_umad_path = '/Library/Application Support/umad'
     mdm_enrolled = False
     uamdm_enrolled = False
@@ -455,7 +464,7 @@ def main():
 
     if mdm_status[0]:
         exit(0)
-    elif LooseVersion(os_version) < LooseVersion('10.13.4'):
+    elif get_os_version() < LooseVersion('10.13.4'):
         if mdm_status[1]:
             exit(0)
 
@@ -489,16 +498,15 @@ def main():
     manualenroll_h2_text = opts.manualenrollh2text
 
     # Get the current username
-    user_name = get_console_username_info()[0]
-    current_user_uid = get_console_username_info()[1]
+    user_name, current_user_uid, _ = get_console_username_info()
 
     # Bail if we are not in a user session.
-    if (user_name is None or user_name == u'loginwindow'
-            or user_name == u'_mbsetupuser'):
+    if user_name in (None, u'loginwindow', u'_mbsetupuser'):
         exit(0)
 
-    if not os.path.exists('/private/var/tmp/umad'):
-        os.makedirs('/private/var/tmp/umad')
+    umad_tmp_dir = '/private/var/tmp/umad'
+    if not os.path.exists(umad_tmp_dir):
+        os.makedirs(umad_tmp_dir)
 
     # Check DND status
     original_dnd_status = do_not_disturb_isset()
@@ -511,12 +519,13 @@ def main():
         do_not_disturb_set_value(True)
         print 'Temporarily enabling DND for DEP activation record check'
         # Restart Notification Center to have CFPreferences take effect
-        subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
+        restart_notification_center()
 
     # Either we need to nag and show the umad DEP UI or we need show manual
     # enrollment UI - this unfortunately requires root access
-    touch('/private/var/tmp/umad/.check_dep_record')
-    while os.path.exists('/private/var/tmp/umad/.check_dep_record'):
+    trigger_path = os.path.join(umad_tmp_dir, '.check_dep_record')
+    touch(trigger_path)
+    while os.path.exists(trigger_path):
         print 'Waiting for DEP record check...'
         time.sleep(1)
 
@@ -536,11 +545,12 @@ def main():
     if dep_capable:
         # Trigger Nag event
         # Force Notification center to refresh itself again
-        touch('/private/var/tmp/umad/.trigger_nag')
-        while os.path.exists('/private/var/tmp/umad/.trigger_nag'):
+        nag_trigger_path = os.path.join(umad_tmp_dir, '.trigger_nag')
+        touch(nag_trigger_path)
+        while os.path.exists(nag_trigger_path):
             print 'Waiting for nag event...'
             time.sleep(1)
-        subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
+        restart_notification_center()
 
     if opts.honordndsettings or not dep_capable:
         # We will honor DND settings for non-DEP devices, unless the admin
@@ -550,12 +560,12 @@ def main():
             print 'Re-enabling DND for user as it was previously set'
             do_not_disturb_set_value(True)
             # Restart Notification Center to have CFPreferences take effect
-            subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
+            restart_notification_center()
 
     # Use the paths defined, or default to pngs in the same local path of
     # umad
     for index, path in enumerate([opts.logopath, opts.nagsspath, opts.uasspath]):
-        if path == 'company_logo.png' or path == 'nag_ss.png' or path == 'uamdm_ss.png':
+        if path in ('company_logo.png', 'nag_ss.png', 'uamdm_ss.png'):
             local_png_path = os.path.join(
                 umad_path, path).replace(' ', '%20')
         else:
@@ -639,9 +649,6 @@ def main():
 
             # Bring back umad to the foreground, every 10 seconds
             timer = float(opts.timerelapsed)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
         elif date_diff_seconds <= 3600:
             # If the cutoff date is within one hour, get very agressive
 
@@ -653,9 +660,6 @@ def main():
             # Bring back umad to the foreground, every 60 seconds
             # (1 minute)
             timer = float(opts.timerfinal)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
         elif date_diff_seconds <= 86400:
             # If the cutoff date is within 86,400 seconds (24 hours), start
             # getting more agressive
@@ -668,9 +672,6 @@ def main():
             # reappear - bring back umad to the foreground, every
             # 600 seconds (10 minutes)
             timer = float(opts.timerday1)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
         elif cut_off_warn:
             # If the cutoff date is within 259,200 seconds (72 hours) or
             # whatever the admin set, start getting a bit more agressive
@@ -683,9 +684,6 @@ def main():
             # reappear - bring back umad to the foreground, every
             # 7,200 seconds (2 hours)
             timer = float(opts.timerday3)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
         else:
             # If the cutoff date is over 259,200 seconds (72 hours),
             # don't be that aggressive
@@ -698,9 +696,12 @@ def main():
             # reappear - bring back umad to the foreground, every
             # 14,400 seconds (4 hours)
             timer = float(opts.timerinital)
-            umad.timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-                timer, umad.timer_controller, 'activateWindow:', None,
-                True)
+
+        umad.timer = (
+            Foundation
+            .NSTimer
+            .scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+                timer, umad.timer_controller, 'activateWindow:', None, True))
     else:
         # If you elect not to use a cutoff date, then the UI will only
         # appear one time per run, and only use the ok button
@@ -724,9 +725,11 @@ def main():
     umad.mdm_timer_controller = mdmTimerController.alloc().init()
     mdm_timer = float(opts.timermdm)
     print 'MDM Timer is set to %s' % str(mdm_timer)
-    umad.mdm_timer = Foundation.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(  # noqa
-        mdm_timer, umad.mdm_timer_controller, 'checkMDMStatus:', None,
-        True)
+    umad.mdm_timer = (
+        Foundation
+        .NSTimer
+        .scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            mdm_timer, umad.mdm_timer_controller, 'checkMDMStatus:', None, True))
 
     # Set up our window controller and delegate
     umad.hidden = True
@@ -743,16 +746,15 @@ def main():
         umad.views['field.depfailuresubtext'].setHidden_(False)
         umad.views['field.depfailuresubtext'].setStringValue_(
             manualenroll_h2_text)
-    else:
-        if date_diff_seconds <= 0:
-            umad.views['field.manualenrollmenttext'].setHidden_(True)
-            umad.views['image.nagscreen'].setHidden_(False)
-            umad.views['field.depfailuretext'].setHidden_(False)
-            umad.views['field.depfailuretext'].setStringValue_(
-                opts.depfailuretext)
-            umad.views['field.depfailuresubtext'].setHidden_(False)
-            umad.views['field.depfailuresubtext'].setStringValue_(
-                opts.depfailuresubtext)
+    elif date_diff_seconds <= 0:
+        umad.views['field.manualenrollmenttext'].setHidden_(True)
+        umad.views['image.nagscreen'].setHidden_(False)
+        umad.views['field.depfailuretext'].setHidden_(False)
+        umad.views['field.depfailuretext'].setStringValue_(
+            opts.depfailuretext)
+        umad.views['field.depfailuresubtext'].setHidden_(False)
+        umad.views['field.depfailuresubtext'].setStringValue_(
+            opts.depfailuresubtext)
 
     # Do one final MDM check to instantly update the UI for UAMDM
     check_mdm_status(True)
