@@ -29,22 +29,25 @@ def getconsoleuser():
 
 def launchctl(*arg):
     # Use *arg to pass unlimited variables to command.
-    cmd = arg
+    cmd = ['/bin/launchctl'] + list(arg)
     run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = run.communicate()
     return output
 
 
-def main():
+def main(argv):
+    target = argv[3]
+
     # Make the Log path 777 to cheat - do this before loading LaunchAgent
-    umad_log_path = '/Library/Application Support/umad/Logs'
+    umad_log_path = os.path.join(target,
+                                 'Library/Application Support/umad/Logs')
     os.chmod(umad_log_path, 0o777)
 
-    lapath = os.path.join('/Library', 'LaunchAgents',
+    lapath = os.path.join(target, 'Library', 'LaunchAgents',
                           'com.anothertoolappleshouldhaveprovided.umad.plist')
-    ldpath1 = os.path.join('/Library', 'LaunchDaemons',
+    ldpath1 = os.path.join(target, 'Library', 'LaunchDaemons',
                            'com.anothertoolappleshouldhaveprovided.umad.check_dep_record.plist')
-    ldpath2 = os.path.join('/Library', 'LaunchDaemons',
+    ldpath2 = os.path.join(target, 'Library', 'LaunchDaemons',
                            'com.anothertoolappleshouldhaveprovided.umad.trigger_nag.plist')
     # Fail the install if the admin forgets to change their paths and they
     # don't exist
@@ -54,16 +57,19 @@ def main():
         else:
             print 'File does not exist: %s' % file
             sys.exit(1)
-    currentuseruid = getconsoleuser()
-    launchctl('/bin/launchctl', 'load', ldpath1)
-    launchctl('/bin/launchctl', 'load', ldpath2)
-    if (currentuseruid[0] is None or currentuseruid[0] == u'loginwindow'
-            or currentuseruid[0] == u'_mbsetupuser'):
-        pass
-    else:
-        launchctl('/bin/launchctl', 'asuser', str(currentuseruid[1]),
-                  '/bin/launchctl', 'load', lapath)
+    
+    # Load agents and daemons if installing to a running system
+    if target == '/':
+        currentuseruid = getconsoleuser()
+        launchctl('load', ldpath1)
+        launchctl('load', ldpath2)
+        if (currentuseruid[0] is None or currentuseruid[0] == u'loginwindow'
+                or currentuseruid[0] == u'_mbsetupuser'):
+            pass
+        else:
+            launchctl('asuser', str(currentuseruid[1]),
+                      '/bin/launchctl', 'load', lapath)
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
