@@ -453,7 +453,6 @@ def main():
     global mdm_profile_identifier
     mdm_profile_identifier = opts.profileidentifier
     main_umad_path = '/Library/Application Support/umad'
-    os_version = get_os_version()
 
     mdm_profile_set = bool(
         mdm_profile_identifier != 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
@@ -467,7 +466,7 @@ def main():
 
     if uamdm_enrolled:
         exit(0)
-    elif os_version < LooseVersion('10.13.4'):
+    elif get_os_version() < LooseVersion('10.13.4'):
         if mdm_enrolled:
             exit(0)
 
@@ -478,9 +477,11 @@ def main():
         exit(0)
 
     # We don't want to nag if device is UAMDM and DEP capable at the same time
-    # - at the very least, bad things happen with jamf Pro
+    # - at the very least, bad things happen with jamf Pro. If the admin does
+    # not provide the profile identifier though, we don't know if the user
+    # is on the wrong MDM.
     skip_nag_check = bool(
-        os_version >= LooseVersion('10.13.4') and mdm_enrolled and mdm_profile_set)
+        get_os_version() >= LooseVersion('10.13.4') and mdm_enrolled and mdm_profile_set)
 
     # Attempt to load our umad globals
     load_umad_globals()
