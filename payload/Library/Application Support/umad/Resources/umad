@@ -76,11 +76,11 @@ def button_understand():
 
 def check_mdm_status(umadupdate):
     '''Check MDM Status'''
-    print 'Checking mdm status'
     uamdm_enrolled = False
     mdm_enrolled = False
     # Check the OS and run our dep checks based on OS version
     if get_os_version() >= LooseVersion('10.13.4'):
+        print 'Checking mdm status - modern'
         if check_mdm_status_modern()[2]:
             print 'MDM enrolled device %s' % get_os_version()
             uamdm_enrolled = True
@@ -95,19 +95,13 @@ def check_mdm_status(umadupdate):
                 if umadupdate:
                     update_umad_ui_uamdm(uamdmparagraph1, uamdmparagraph2,
                                          uamdmparagraph3)
-    # 10.13.0 -> 10.13.3 machines should get here, so we exit here
-    elif get_os_version() >= LooseVersion('10.13'):
-        if check_mdm_high_sierra_legacy():
-            mdm_enrolled = True
-            print 'MDM enrolled device %s' % os_version
-            if umadupdate:
-                umad.quit()
     else:
-        # Anything lower than 10.13, we just check if the profile is
+        # Anything lower than 10.13.4, we just check if the profile is
         # installed
+        print 'Checking mdm status - legacy'
         if check_mdm_legacy(mdm_profile_identifier):
             mdm_enrolled = True
-            print 'MDM enrolled device %s' % os_version
+            print 'MDM enrolled device %s' % get_os_version()
             if umadupdate:
                 umad.quit()
     return uamdm_enrolled, mdm_enrolled
