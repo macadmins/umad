@@ -80,7 +80,7 @@ def check_mdm_status(umadupdate):
     uamdm_enrolled = False
     mdm_enrolled = False
     # Check the OS and run our dep checks based on OS version
-    if get_os_version >= LooseVersion('10.13'):
+    if get_os_version() >= LooseVersion('10.13'):
         if get_os_version() >= LooseVersion('10.13.4'):
             if check_mdm_status_modern()[2]:
                 print 'MDM enrolled device %s' % os_version
