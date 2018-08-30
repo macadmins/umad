@@ -498,8 +498,7 @@ def main():
     user_name, current_user_uid, _ = get_console_username_info()
 
     # Bail if we are not in a user session.
-    if (user_name is None or user_name == u'loginwindow'
-            or user_name == u'_mbsetupuser'):
+    if user_name in (None, u'loginwindow', u'_mbsetupuser'):
         exit(0)
 
     if not os.path.exists('/private/var/tmp/umad'):
