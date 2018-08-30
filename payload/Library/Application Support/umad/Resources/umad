@@ -387,6 +387,7 @@ def restart_notification_center():
     '''Restart NotificationCenter by killing, letting LaunchD respawn.'''
     subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
 
+
 def load_umad_globals():
     '''Try to figure out the path of umad.nib and load it.'''
     try:
@@ -452,19 +453,21 @@ def main():
     global mdm_profile_identifier
     mdm_profile_identifier = opts.profileidentifier
     main_umad_path = '/Library/Application Support/umad'
-    mdm_enrolled = False
-    uamdm_enrolled = False
 
-    if mdm_profile_identifier == 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330':
+    mdm_profile_set = bool(
+        mdm_profile_identifier == 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
+    if not mdm_profile_set:
         print 'WARN - Did not set mdm profile identifier!'
 
     # Check the OS and run our dep checks based on OS version
     mdm_status = check_mdm_status(False)
+    uamdm_enrolled = mdm_status[0]
+    mdm_enrolled = mdm_status[1]
 
-    if mdm_status[0]:
+    if uamdm_enrolled:
         exit(0)
     elif get_os_version() < LooseVersion('10.13.4'):
-        if mdm_status[1]:
+        if mdm_enrolled:
             exit(0)
 
     # If we get here, device is not MDM enrolled - check if umad is already
