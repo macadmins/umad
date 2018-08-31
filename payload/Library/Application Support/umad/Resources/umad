@@ -658,15 +658,21 @@ def main():
                 '_SYSTEM_CENTER_:com.apple.mdmclient',
             ]
             if get_os_version() <= LooseVersion('10.13'):
-                # Wait a few seconds before looking to ensure the db is written
-                time.sleep(3)
-                notifications = get_all_notifications_legacy()
-                if notifications:
-                    last_notification = notifications[-1]['app']
-                    nag_triggered = bool(
-                        last_notification in valid_notifications)
-                else:
-                    nag_triggered = False
+                # Check for nag event every 10th second for 3 seconds
+                nag_triggered = False
+                retries = 30
+                while not nag_triggered:
+                    notifications = get_all_notifications_legacy()
+                    if notifications:
+                        last_notification = notifications[-1]['app']
+                        nag_triggered = bool(
+                            last_notification in valid_notifications)
+                        if nag_triggered:
+                            break
+                    time.sleep(0.1)
+                    retries -= 1
+                    if retries == 0:
+                        break
             else:
                 nag_triggered = True
             if not nag_triggered:
