@@ -291,12 +291,12 @@ def get_console_username_info():
 
 
 def get_os_version():
-    """Return OS version."""
+    '''Return OS version.'''
     return LooseVersion(platform.mac_ver()[0])
 
 
 def get_parsed_options():
-    """Return the parsed options and args for this application."""
+    '''Return the parsed options and args for this application.'''
     # Options
     usage = '%prog [options]'
     o = optparse.OptionParser(usage=usage)
