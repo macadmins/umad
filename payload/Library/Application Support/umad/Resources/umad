@@ -653,17 +653,23 @@ def main():
             # There is a bug in versions of macOS lower than 10.13, where the
             # nag will not show up, even with DND turned on
             # If detected, show the manual enrollment info
+            valid_notifications = [
+                '_system_center_:com.apple.mdmclient',
+                '_SYSTEM_CENTER_:com.apple.mdmclient',
+            ]
             if get_os_version() <= LooseVersion('10.13'):
                 # Wait a few seconds before looking to ensure the db is written
                 time.sleep(3)
                 notifications = get_all_notifications_legacy()
                 if notifications:
-                    dep_nag_triggered = bool(notifications[-1]['app'] == '_system_center_:com.apple.mdmclient')
+                    last_notification = notifications[-1]['app']
+                    nag_triggered = bool(
+                        last_notification in valid_notifications)
                 else:
-                    dep_nag_triggered = False
+                    nag_triggered = False
             else:
-                dep_nag_triggered = True
-            if not dep_nag_triggered:
+                nag_triggered = True
+            if not nag_triggered:
                 print 'WARN - DEP Nag did not trigger!'
 
         if opts.honordndsettings or not dep_capable:
@@ -872,7 +878,7 @@ def main():
     # If the device isn't dep capable, enable the manual enrollment button
     # Also if admin always wants the break glass option
     # Also enable if dep nag didn't actually pop-up
-    if (not dep_capable and mdm_profile_set) or opts.enableenrollmentbutton or not dep_nag_triggered:
+    if (not dep_capable and mdm_profile_set) or opts.enableenrollmentbutton or not nag_triggered:
         umad.views['button.manualenrollment'].setHidden_(False)
         umad.views['field.manualenrollmenttext'].setHidden_(False)
         umad.views['image.nagscreen'].setHidden_(True)
