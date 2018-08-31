@@ -40,7 +40,10 @@ def main():
             # You cannot do two nag events within 10 seconds of each other on
             # at least 10.12 - wait 10 seconds and try one more time.
             # If you attempt to do this you will get the following error:
+            # On 10.12
             # [ERROR] Unable to get activation record: Error Domain=NSCocoaErrorDomain Code=4097 "connection to service named com.apple.ManagedClient.cloudconfigurationd" UserInfo={NSDebugDescription=connection to service named com.apple.ManagedClient.cloudconfigurationd}
+            # On 10.11
+            # mdmclient[899:21947] Did NOT fetch configuration from Device Enrollment server: 34002 (Unable to communicate with the local Device Enrollment service. Please try again later.)
             time.sleep(10)
             if trigger_nag():
                 print 'Triggered nag backup - True'
