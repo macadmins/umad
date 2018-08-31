@@ -19,13 +19,23 @@ def trigger_nag():
         cmd = ['/usr/bin/profiles', 'renew', '-type', 'enrollment']
     elif os_version < LooseVersion('10.13') and os_version >= LooseVersion('10.12.4'):
         cmd = ['/usr/bin/profiles', '-N']
-    else:
+    elif os_version < LooseVersion('10.12.4') and os_version >= LooseVersion('10.12'):
+        # This is not supported by Apple, but it works
         cmd = ['/usr/libexec/mdmclient', 'dep', 'nag']
-    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output, err = run.communicate()
-    if err:
-        return False
     else:
+        # This is really not supported by Apple, but I discovered it
+        # Tested on 10.10.5
+        # /usr/libexec/mdmclient cloudconfig
+        cmd = ['/usr/libexec/mdmclient', 'cloudconfig']
+    if os_version >= LooseVersion('10.11'):
+        run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, err = run.communicate()
+        if err:
+            return False
+        else:
+            return True
+    else:
+        run = subprocess.Popen(cmd, preexec_fn=os.setpgrp)
         return True
 
 
@@ -40,10 +50,7 @@ def main():
             # You cannot do two nag events within 10 seconds of each other on
             # at least 10.12 - wait 10 seconds and try one more time.
             # If you attempt to do this you will get the following error:
-            # On 10.12
             # [ERROR] Unable to get activation record: Error Domain=NSCocoaErrorDomain Code=4097 "connection to service named com.apple.ManagedClient.cloudconfigurationd" UserInfo={NSDebugDescription=connection to service named com.apple.ManagedClient.cloudconfigurationd}
-            # On 10.11
-            # mdmclient[899:21947] Did NOT fetch configuration from Device Enrollment server: 34002 (Unable to communicate with the local Device Enrollment service. Please try again later.)
             time.sleep(10)
             if trigger_nag():
                 print 'Triggered nag backup - True'

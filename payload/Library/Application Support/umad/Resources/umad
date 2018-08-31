@@ -230,17 +230,18 @@ def get_all_notifications_legacy():
                 'presented_notifications.note_id) AS data from '\
                 'presented_notifications ')
             for row in cursor:
-                plist = FoundationPlist.readPlistFromString(row['data'])
+                data = {}
+                if get_os_version() >= LooseVersion('10.11'):
+                    plist = FoundationPlist.readPlistFromString(row['data'])
+                    title = plist['$objects'][2]
+                    message = plist['$objects'][3]
+                    data['message'] = message
+                    data['title'] = title
                 date = row['time']
                 date_time = datetime.utcfromtimestamp(date + 978307200)
                 app = row['bundle']
-                title = plist['$objects'][2]
-                message = plist['$objects'][3]
-                data = {}
                 data['app'] = app
                 data['date'] = date_time
-                data['message'] = message
-                data['title'] = title
                 db_items.append(data)
             conn.close()
             return db_items
@@ -641,6 +642,8 @@ def main():
             dep_capable = False
             print 'Device DEP capable - False'
 
+        nag_triggered = False
+
         if dep_capable:
             # Trigger Nag event
             # Force Notification center to refresh itself again
@@ -656,10 +659,10 @@ def main():
             valid_notifications = [
                 '_system_center_:com.apple.mdmclient',
                 '_SYSTEM_CENTER_:com.apple.mdmclient',
+                '_SYSTEM_CENTER_:com.apple.mdmclient.cloudconfig'
             ]
             if get_os_version() <= LooseVersion('10.13'):
                 # Check for nag event every 10th second for 3 seconds
-                nag_triggered = False
                 retries = 30
                 while not nag_triggered:
                     notifications = get_all_notifications_legacy()

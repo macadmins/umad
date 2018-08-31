@@ -3,7 +3,9 @@ import os
 import platform
 import plistlib
 import subprocess
+import time
 from distutils.version import LooseVersion
+from shutil import copyfile
 
 
 def get_os_version():
@@ -13,14 +15,30 @@ def get_os_version():
 
 def has_dep_activation_record(plist_path):
     # We can't use -o stdout-xml due to another Apple bug :)
+    good_record = '/private/var/db/ConfigurationProfiles/.cloudConfigRecordFound'
+    bad_record = '/private/var/db/ConfigurationProfiles/.cloudConfigRecordNotFound'
     if os.path.exists(plist_path):
         os.remove(plist_path)
     if get_os_version() >= LooseVersion('10.12'):
         cmd = ['/usr/bin/profiles', '-e', '-o', plist_path]
-    else:
+    elif get_os_version() >= LooseVersion('10.11') and get_os_version() < LooseVersion('10.12'):
+        # This is not supported by Apple, but it works
         cmd = ['/usr/libexec/mdmclient', 'dep', 'nag']
-    run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output, err = run.communicate()
+    else:
+        # This is really not supported by Apple, but I discovered it
+        # Tested on 10.10.5
+        # /usr/libexec/mdmclient cloudconfig
+        cmd = ['/usr/libexec/mdmclient', 'cloudconfig']
+    if get_os_version() >= LooseVersion('10.11'):
+        run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, err = run.communicate()
+    else:
+        # Delete records in case it is already there.
+        if os.path.isfile(good_record):
+            os.remove(good_record)
+        if os.path.isfile(bad_record):
+            os.remove(bad_record)
+        run = subprocess.Popen(cmd, preexec_fn=os.setpgrp)
     if get_os_version() >= LooseVersion('10.12'):
         if err:
             return False
@@ -32,7 +50,7 @@ def has_dep_activation_record(plist_path):
             return False
         else:
             return True
-    else:
+    elif get_os_version() >= LooseVersion('10.11') and get_os_version() < LooseVersion('10.12'):
         # On 10.11 and lower, /usr/libexec/mdmclient dep nag returns the DEP
         # config data on stderr!
         if 'ConfigurationURL' in err:
@@ -53,6 +71,19 @@ def has_dep_activation_record(plist_path):
             return True
         else:
             return False
+    else:
+        # 10.10 and lower
+        cloud_config_exists = False
+        retries = 30
+        while not cloud_config_exists:
+            cloud_config_exists = bool(os.path.isfile(good_record))
+            if cloud_config_exists:
+                copyfile(good_record, plist_path)
+            time.sleep(0.1)
+            retries -= 1
+            if retries == 0:
+                break
+        return cloud_config_exists
     return False
 
 
@@ -69,6 +100,9 @@ def main():
     if os.path.exists(dot_path):
         os.remove(dot_path)
 
+    # Because of what we do with mdmclient on 10.11 we need to force exit 0
+    if get_os_version() < LooseVersion('10.11'):
+        exit(0)
 
 if __name__ == '__main__':
     main()
