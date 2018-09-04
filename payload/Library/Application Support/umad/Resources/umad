@@ -661,11 +661,14 @@ def main():
                 '_SYSTEM_CENTER_:com.apple.mdmclient',
                 '_SYSTEM_CENTER_:com.apple.mdmclient.cloudconfig'
             ]
-            if get_os_version() <= LooseVersion('10.13'):
+            if get_os_version() < LooseVersion('10.13.4'):
                 # Check for nag event every 10th second for 3 seconds
                 retries = 30
                 while not nag_triggered:
-                    notifications = get_all_notifications_legacy()
+                    if get_os_version() >= LooseVersion('10.13'):
+                        notifications = get_all_notifications_modern()
+                    else:
+                        notifications = get_all_notifications_legacy()
                     if notifications:
                         last_notification = notifications[-1]['app']
                         nag_triggered = bool(
