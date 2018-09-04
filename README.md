@@ -43,7 +43,7 @@ In order to create a properly working package, you will need to run the followin
 
 ## OS Support
 The following operating system and versions have been tested.
-- 10.10.0 [1](https://github.com/AnotherToolAppleShouldHaveProvided/umad/issues/11), 10.10.5 - [2](https://github.com/AnotherToolAppleShouldHaveProvided/umad/issues/10)
+- 10.10.0 [Note 1](https://github.com/AnotherToolAppleShouldHaveProvided/umad/issues/11), 10.10.5 - [Note 2](https://github.com/AnotherToolAppleShouldHaveProvided/umad/issues/10)
 - 10.11.0, 10.11.6
 - 10.12.0, 10.12.6 (10.12 is very unreliable with DEP nagging)
 - 10.13.0 10.13.3, 10.13.6
