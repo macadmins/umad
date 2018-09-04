@@ -4,7 +4,7 @@
 [A]pproval
 [D]ialog
 
-## Important Infomation
+## Important Information
 You most certainly want to customize the following values:
 
 - cutoffdate
