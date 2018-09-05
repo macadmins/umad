@@ -355,7 +355,7 @@ You can customize the uamdm screenshot path. Option 2, just replace the included
 
 * <b><i>I made changes to the default LaunchAgent and now the UI isn't appearing?</b></i>
 
-Make sure you unload, and reload the LaunchAgent after making changes.
+	Make sure you unload, and reload the LaunchAgent after making changes.
 
 * <b><i>Where is the logging located?</b></i>
 
@@ -363,7 +363,7 @@ Make sure you unload, and reload the LaunchAgent after making changes.
 
 * <b><i>Why isn't the log file there?</b></i>
 
-Remember to unload and reload the LaunchAgent.
+	Remember to unload and reload the LaunchAgent.
 
 
 ## Credits
