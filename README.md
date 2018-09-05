@@ -37,14 +37,23 @@ The following operating system and versions have been tested.
 - 10.14.0
 
 ## Getting started
-To start, you can use the default settings in -
+To start, you can use the default settings in `/Library/LaunchAgent/com.anothertoolappleshouldhaveprovided.umad.plist`
 ```xml
 <string>com.anothertoolappleshouldhaveprovided.umad.plist</string>
 ```
-Essentially every component of the UI is customizable, using the LaunchAgent.
+Essentially every component of the UI is customizable, using the LaunchAgent.  
+* Create your .pkg with munki-pkg and install on your target workstation.
+* Open terminal.
+<i>example</i>
+
+```xml
+<string>/Library/Application Support/umad/Resources/umad --cutoffdate 2018-9-7-17:00</string>
+```
+<i>sets the cutoff date to September 7th at 5pm</i>
 
 ### Cutoff date
 Cut off date in UTC.
+
 ```xml
 <string>--cutoffdate</string>
 <string>2018-12-31-17:00</string>
@@ -52,6 +61,7 @@ Cut off date in UTC.
 
 ### Cut off date warning
 This is the number, in days, of when to start the initial UI warning. When this set of days passes, the user will be required to hit an "I Understand" button, followed by the "Close" button to exit out of the UI.
+
 ```xml
 <string>--cutoffdatewarning</string>
 <string>14</string>
@@ -59,6 +69,7 @@ This is the number, in days, of when to start the initial UI warning. When this 
 
 ### Due date text
 This is the bolded portion of the UI towards the top under the ["titletext".](#title-text)
+
 ```xml
 <string>--duedatetext</string>
 <string>MDM Enrollment is required by 12/31/2018 (No Restart Required)</string>
@@ -68,6 +79,7 @@ This is the bolded portion of the UI towards the top under the ["titletext".](#t
 If a user has a DEP capable device, but they are passed the enrollment window, they will have an option to manually enroll.
 
 This is the first set of text above the enrollment button.
+
 ```xml
 <string>--depfailuretext</string>
 <string>Not getting this notification?</string>
@@ -77,6 +89,7 @@ This is the first set of text above the enrollment button.
 If a user has a DEP capable device, but they are passed the enrollment window, they will have an option to manually enroll.
 
 This is the second set of text above the enrollment button.
+
 ```xml
 <string>--depfailuresubtext</string>
 <string>You can also enroll manually below:</string>
@@ -102,6 +115,7 @@ Non-DEP devices will honor the users DND settings
 
 ### Logo path
 A custom logo path. Alternatively, just replace the included company_logo.png
+
 ```xml
 <string>--logopath</string>
 <string>/Some/Custom/Path/company_logo.png</string>
@@ -269,16 +283,17 @@ When the MDM cutoff date is one day or less, this timer becomes active.
 ### Timer Day 3
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
-When the MDM cutoff date is three days or less.
+When the MDM cutoff date is three days or less from current date.
 ```xml
 <string>--timerday3</string>
 <string>7200</string>
 ```
 
 ### Timer Elapsed
-The time, in seconds, to restore the umad GUI to the front of a user's window. When the MDM cutoff date has elapsed, the UI will display over all other windows.
+After the user interacts with umad GUI, (such as clicking the "I understand" button) timer elapsed controls when the UI
+will display again.
 
-This will occur indefinitely until the UI is closed or MDM is enrolled.
+This will occur indefinitely until the MDM is enrolled.
 ```xml
 <string>--timerelapsed</string>
 <string>10</string>
