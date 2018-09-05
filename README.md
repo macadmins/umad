@@ -38,17 +38,14 @@ The following operating system and versions have been tested.
 
 ## Getting started
 To start, you can use the default settings in `/Library/LaunchAgent/com.anothertoolappleshouldhaveprovided.umad.plist`
-```xml
-<string>com.anothertoolappleshouldhaveprovided.umad.plist</string>
-```
-Essentially every component of the UI is customizable, using the LaunchAgent.  
+
+Essentially every component of the UI is customizable, using the above LaunchAgent.  
 * Create your .pkg with munki-pkg and install on your target workstation.
 * Open terminal.
 <i>example</i>
 
-```xml
-<string>/Library/Application Support/umad/Resources/umad --cutoffdate 2018-9-7-17:00</string>
-```
+`/Library/Application Support/umad/Resources/umad --cutoffdate 2018-9-7-17:00
+`
 <i>sets the cutoff date to September 7th at 5pm</i>
 
 ### Cutoff date
@@ -114,7 +111,8 @@ Non-DEP devices will honor the users DND settings
 ```
 
 ### Logo path
-A custom logo path. Alternatively, just replace the included company_logo.png
+You can replace the included company_logo.png with your own company_logo.png or you can configure a custom Path
+with the following string:
 
 ```xml
 <string>--logopath</string>
