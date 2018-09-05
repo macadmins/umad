@@ -358,6 +358,7 @@ You can customize the uamdm screenshot path. Option 2, just replace the included
 Make sure you unload, and reload the LaunchAgent after making changes.
 
 * <b><i>Where is the logging located?</b></i>
+
 	`/Library/Application Support/umad/umad.log`
 
 * <b><i>Why isn't the log file there?</b></i>
