@@ -89,9 +89,15 @@
 	<key>StandardOutPath</key>
 	<string>/Library/Application Support/umad/Logs/umad.log</string>
 	<key>StartCalendarInterval</key>
-	<dict>
-		<key>Minute</key>
-		<integer>30</integer>
-	</dict>
+	<array>
+		<dict>
+			<key>Minute</key>
+			<integer>0</integer>
+		</dict>
+		<dict>
+			<key>Minute</key>
+			<integer>30</integer>
+		</dict>
+	</array>
 </dict>
 </plist>
