@@ -653,15 +653,15 @@ def main():
                 print 'Waiting for nag event...'
                 time.sleep(1)
             restart_notification_center()
-            # There is a bug in versions of macOS lower than 10.13, where the
-            # nag will not show up, even with DND turned on
-            # If detected, show the manual enrollment info
+            # There is a bug in versions of macOS, where the nag will not show
+            # up, even with DND turned on. If detected, show the manual
+            # enrollment info
             valid_notifications = [
                 '_system_center_:com.apple.mdmclient',
                 '_SYSTEM_CENTER_:com.apple.mdmclient',
                 '_SYSTEM_CENTER_:com.apple.mdmclient.cloudconfig'
             ]
-            if get_os_version() < LooseVersion('10.13.4'):
+            if get_os_version() >= LooseVersion('10.10'):
                 # Check for nag event every 10th second for 3 seconds
                 retries = 30
                 while not nag_triggered:
@@ -674,15 +674,14 @@ def main():
                         nag_triggered = bool(
                             last_notification in valid_notifications)
                         if nag_triggered:
+                            print 'Triggered nag event - True'
                             break
                     time.sleep(0.1)
                     retries -= 1
                     if retries == 0:
                         break
-            else:
-                nag_triggered = True
             if not nag_triggered:
-                print 'WARN - DEP Nag did not trigger!'
+                print 'Triggered nag event - False'
 
         if opts.honordndsettings or not dep_capable:
             # We will honor DND settings for non-DEP devices, unless the admin
