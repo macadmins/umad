@@ -4,16 +4,8 @@
 [A]pproval
 [D]ialog
 
-## Important Information
-You most certainly want to customize the following values:
-
-- cutoffdate
-- duedatetext
-- manualenrollmenturl
-- moreinfourl
-- profileidentifier
-
-Also, you will at the very least want to change the `nag_ss.png`
+## Purpose
+A Professional Tool to help users with pre-existing devices enrolled into MDM.
 
 ## Screenshots
 
@@ -29,19 +21,14 @@ Also, you will at the very least want to change the `nag_ss.png`
 ### Simplified Diagram
 ![Simplified Diagram](/images/umad_diagram.png?raw=true)
 
-## Building this package
-You will need to use [munki-pkg](https://github.com/munki/munki-pkg) to build this package
-
-## Credits
-This tool would not be possible without [nibbler](https://github.com/pudquick/nibbler), written by [Michael Lynn](https://twitter.com/mikeymikey)
-
 ### Notes
-Because of the way git works, umad will not contain the `Logs` folder required for the postinstall to complete.
+You will need to use [munki-pkg](https://github.com/munki/munki-pkg) to build this package.
 
+Because of the way git works, umad will not contain the `Logs` folder required for the postinstall to complete.
 In order to create a properly working package, you will need to run the following command:
 `munkipkg --sync /path/to/cloned_repo/mdm/umad`
 
-## OS Support
+## Supported mac OS
 The following operating system and versions have been tested.
 - 10.10.0 [Note 1](https://github.com/AnotherToolAppleShouldHaveProvided/umad/issues/11), 10.10.5 - [Note 2](https://github.com/AnotherToolAppleShouldHaveProvided/umad/issues/10)
 - 10.11.0, 10.11.6
@@ -49,11 +36,21 @@ The following operating system and versions have been tested.
 - 10.13.0 10.13.3, 10.13.6
 - 10.14.0
 
-## Options
-Essentially every component of the UI is customizable, all through the LaunchAgent.
+## Getting started
+To start, you can use the default settings in `/Library/LaunchAgent/com.anothertoolappleshouldhaveprovided.umad.plist`
+
+Essentially every component of the UI is customizable, using the above LaunchAgent.  
+* Create your .pkg with munki-pkg and install on your target workstation.
+* Open terminal.
+<i>example</i>
+
+`/Library/Application Support/umad/Resources/umad --cutoffdate 2018-9-7-17:00
+`
+<i>sets the cutoff date to September 7th at 5pm</i>
 
 ### Cutoff date
 Cut off date in UTC.
+
 ```xml
 <string>--cutoffdate</string>
 <string>2018-12-31-17:00</string>
@@ -61,13 +58,15 @@ Cut off date in UTC.
 
 ### Cut off date warning
 This is the number, in days, of when to start the initial UI warning. When this set of days passes, the user will be required to hit an "I Understand" button, followed by the "Close" button to exit out of the UI.
+
 ```xml
 <string>--cutoffdatewarning</string>
 <string>14</string>
 ```
 
 ### Due date text
-This is the bolded portion of the UI towards the top.
+This is the bolded portion of the UI towards the top under the ["titletext".](#title-text)
+
 ```xml
 <string>--duedatetext</string>
 <string>MDM Enrollment is required by 12/31/2018 (No Restart Required)</string>
@@ -77,6 +76,7 @@ This is the bolded portion of the UI towards the top.
 If a user has a DEP capable device, but they are passed the enrollment window, they will have an option to manually enroll.
 
 This is the first set of text above the enrollment button.
+
 ```xml
 <string>--depfailuretext</string>
 <string>Not getting this notification?</string>
@@ -86,6 +86,7 @@ This is the first set of text above the enrollment button.
 If a user has a DEP capable device, but they are passed the enrollment window, they will have an option to manually enroll.
 
 This is the second set of text above the enrollment button.
+
 ```xml
 <string>--depfailuresubtext</string>
 <string>You can also enroll manually below:</string>
@@ -110,7 +111,9 @@ Non-DEP devices will honor the users DND settings
 ```
 
 ### Logo path
-A custom logo path. Alternatively, just replace the included company_logo.png
+You can replace the included company_logo.png with your own company_logo.png or you can configure a custom Path
+with the following string:
+
 ```xml
 <string>--logopath</string>
 <string>/Some/Custom/Path/company_logo.png</string>
@@ -118,6 +121,7 @@ A custom logo path. Alternatively, just replace the included company_logo.png
 
 ### Manual enrollment text
 If a user does not have a DEP capable device, they will have the option to manually enroll.
+<i>Authentication may be required for manual enrollment.</i>
 
 This is the bolded text that takes place of the DEP or UAMDM screenshot.
 
@@ -128,6 +132,7 @@ This is the bolded text that takes place of the DEP or UAMDM screenshot.
 
 ### Manual enrollment h1 text
 If a user does not have a DEP capable device, they will have the option to manually enroll.
+<i>Authentication may be required for manual enrollment.</i>
 
 This is the first set of text above the enrollment button.
 
@@ -138,6 +143,7 @@ This is the first set of text above the enrollment button.
 
 ### Manual enrollment h2 text
 If a user does not have a DEP capable device, they will have the option to manually enroll.
+<i>Authentication may be required for manual enrollment.</i>
 
 This is the second set of text above the enrollment button.
 
@@ -147,49 +153,50 @@ This is the second set of text above the enrollment button.
 ```
 
 ### Manual enrollment URL
-This is the URL to open for the Manual Enrollment button.
+Configure the Manual Enrollment button with a custom URL.
 ```xml
 <string>--manualenrollmenturl</string>
 <string>https://apple.com</string>
 ```
 
 ### More info URL
-This is the URL to open for the Manual Enrollment button.
+When you see the Manual Enrollment button, you can customize a URL directing the users to more information.
 ```xml
 <string>--moreinfourl</string>
 <string>https://google.com</string>
 ```
 
 ### Nag screenshot path
-A custom nag screenshot path. Alternatively, just replace the included nag_ss.png
+You can modify the LaunchAgent adding your custom path or just replace the included nag_ss.png with your own .png.
+(remember to name the file nag_ss.png if you are not using a custom path)
 ```xml
 <string>--nagsspath</string>
 <string>/Some/Custom/Path/nag_ss.png</string>
 ```
 
 ### No timer
-Do not attempt to restore the umad GUI to the front of a user's window.
+Use this setting if you <b>DO NOT</b> want to restore the umad GUI to the front of a user's window.
 
 ```xml
 <string>--notimer</string>
 ```
 
 ### Paragraph 1 text
-This is the text for the first paragraph.
+This is the text for the first paragraph. 160 character limit.
 ```xml
 <string>--paragraph1</string>
 <string>If you do not enroll into MDM you will lose the ability to connect to Wi-Fi, VPN and Managed Software Center.</string>
 ```
 
 ### Paragraph 2 text
-This is the text for the second paragraph.
+This is the text for the second paragraph. 160 character limit.
 ```xml
 <string>--paragraph2</string>
 <string>To enroll, just look for the below notification, and click Details. Once prompted, log in with your username and password.</string>
 ```
 
 ### Paragraph 2 text
-This is the text for the third paragraph.
+This is the text for the third paragraph. 160 character limit.
 ```xml
 <string>--paragraph3</string>
 <string>To enroll, just look for the below notification, and click Details. Once prompted, log in with your OneLogin username and password.</string>
@@ -265,7 +272,7 @@ This is the main, bolded text at the very top.
 ### Timer Day 1
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
-This is when the MDM cutoff is one day or less.
+When the MDM cutoff date is one day or less, this timer becomes active.
 ```xml
 <string>--timerday1</string>
 <string>600</string>
@@ -274,16 +281,17 @@ This is when the MDM cutoff is one day or less.
 ### Timer Day 3
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
-This is when the MDM cutoff is three days or less.
+When the MDM cutoff date is three days or less from current date.
 ```xml
 <string>--timerday3</string>
 <string>7200</string>
 ```
 
 ### Timer Elapsed
-The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
+After the user interacts with umad GUI, (such as clicking the "I understand" button) timer elapsed controls when the UI
+will display again.
 
-This is when the MDM cutoff has elapsed.
+This will occur indefinitely until the MDM is enrolled.
 ```xml
 <string>--timerelapsed</string>
 <string>10</string>
@@ -292,7 +300,7 @@ This is when the MDM cutoff has elapsed.
 ### Timer Final
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
-This is when the MDM cutoff is one hour or less
+This is when the MDM cutoff date is one hour or less
 ```xml
 <string>--timerfinal</string>
 <string>60</string>
@@ -301,7 +309,7 @@ This is when the MDM cutoff is one hour or less
 ### Timer Initial
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
-This is when the MDM cutoff is over three days.
+When the MDM cutoff date is over three days.
 ```xml
 <string>--timerinital</string>
 <string>14400</string>
@@ -337,8 +345,26 @@ This is the text for the third paragraph on the user Approved MDM UI.
 ```
 
 ### User Approved MDM screenshot path
-A custom uamdm screenshot path. Alternatively, just replace the included uamdm_ss.png.png
+You can customize the uamdm screenshot path. Option 2, just replace the included uamdm_ss.png with your own .png.  Make sure you name the .png the same as the original and place it back into `umad/Resources/`  .
 ```xml
 <string>--uasspath</string>
 <string>/Some/Custom/Path/uamdm_ss.png</string>
 ```
+
+## Tips, Tricks, and Troubleshooting
+
+* <b><i>I made changes to the default LaunchAgent and now the UI isn't appearing?</b></i>
+
+	Make sure you unload, and reload the LaunchAgent after making changes.
+
+* <b><i>Where is the logging located?</b></i>
+
+	`/Library/Application Support/umad/umad.log`
+
+* <b><i>Why isn't the log file there?</b></i>
+
+	Remember to unload and reload the LaunchAgent.
+
+
+## Credits
+This tool would not be possible without [nibbler](https://github.com/pudquick/nibbler), written by [Michael Lynn](https://twitter.com/mikeymikey)
