@@ -76,7 +76,7 @@ This is the bolded portion of the UI towards the top.
 ### DEP failure text
 If a user has a DEP capable device, but they are passed the enrollment window, they will have an option to manually enroll.
 
-This is the first set of text above the enrollment button.
+This is the first set of text above the **Manual Enrollment** button.
 ```xml
 <string>--depfailuretext</string>
 <string>Not getting this notification?</string>
@@ -85,7 +85,7 @@ This is the first set of text above the enrollment button.
 ### DEP failure subtext
 If a user has a DEP capable device, but they are passed the enrollment window, they will have an option to manually enroll.
 
-This is the second set of text above the enrollment button.
+This is the second set of text above the **Manual Enrollment** button.
 ```xml
 <string>--depfailuresubtext</string>
 <string>You can also enroll manually below:</string>
@@ -129,7 +129,7 @@ This is the bolded text that takes place of the DEP or UAMDM screenshot.
 ### Manual enrollment h1 text
 If a user does not have a DEP capable device, they will have the option to manually enroll.
 
-This is the first set of text above the enrollment button.
+This is the first set of text above the **Manual Enrollment** button.
 
 ```xml
 <string>--manualenrollh1text</string>
@@ -139,7 +139,7 @@ This is the first set of text above the enrollment button.
 ### Manual enrollment h2 text
 If a user does not have a DEP capable device, they will have the option to manually enroll.
 
-This is the second set of text above the enrollment button.
+This is the second set of text above the **Manual Enrollment** button.
 
 ```xml
 <string>--manualenrollh2text</string>
@@ -147,14 +147,14 @@ This is the second set of text above the enrollment button.
 ```
 
 ### Manual enrollment URL
-This is the URL to open for the Manual Enrollment button.
+This is the URL to open for the **Manual Enrollment** button.
 ```xml
 <string>--manualenrollmenturl</string>
 <string>https://apple.com</string>
 ```
 
 ### More info URL
-This is the URL to open for the Manual Enrollment button.
+This is the URL to open for the **Manual Enrollment** button.
 ```xml
 <string>--moreinfourl</string>
 <string>https://google.com</string>
@@ -240,7 +240,7 @@ This is the text right under the main title.
 ### System Preferences H1 text
 Should the user have a 10.13.4+ device that is not User Approved MDM, they will be notified that they need to approve the MDM.
 
-This is the first set of text above the system preferences button.
+This is the first set of text above the **Open System Preferences** button.
 ```xml
 <string>--sysprefsh1text</string>
 <string>Want this box to go away?</string>
@@ -249,7 +249,7 @@ This is the first set of text above the system preferences button.
 ### System Preferences H2 text
 Should the user have a 10.13.4+ device that is not User Approved MDM, they will be notified that they need to approve the MDM.
 
-This is the second set of text above the system preferences button.
+This is the second set of text above the **Open System Preferences** button.
 ```xml
 <string>--sysprefsh2text</string>
 <string>Open System Preferences and approve Device Management.</string>
@@ -337,7 +337,7 @@ This is the text for the third paragraph on the user Approved MDM UI.
 ```
 
 ### User Approved MDM screenshot path
-A custom uamdm screenshot path. Alternatively, just replace the included `uamdm_ss.png.png`.
+A custom uamdm screenshot path. Alternatively, just replace the included `uamdm_ss.png`.
 ```xml
 <string>--uasspath</string>
 <string>/Some/Custom/Path/uamdm_ss.png</string>
