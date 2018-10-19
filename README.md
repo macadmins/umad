@@ -1,19 +1,19 @@
 # UMAD
-[U]ser-facing
-[M]DM
-[A]pproval
-[D]ialog
+**U**ser-facing
+**M**DM
+**A**pproval
+**D**ialog
 
 ## Important Information
 You most certainly want to customize the following values:
 
-- cutoffdate
-- duedatetext
-- manualenrollmenturl
-- moreinfourl
-- profileidentifier
+- `cutoffdate`
+- `duedatetext`
+- `manualenrollmenturl`
+- `moreinfourl`
+- `profileidentifier`
 
-Also, you will at the very least want to change the `nag_ss.png`
+Also, you will at the very least want to change the `nag_ss.png`.
 
 ## Screenshots
 
@@ -30,16 +30,16 @@ Also, you will at the very least want to change the `nag_ss.png`
 ![Simplified Diagram](/images/umad_diagram.png?raw=true)
 
 ## Building this package
-You will need to use [munki-pkg](https://github.com/munki/munki-pkg) to build this package
+You will need to use [munki-pkg](https://github.com/munki/munki-pkg) to build this package.
 
 ## Credits
-This tool would not be possible without [nibbler](https://github.com/pudquick/nibbler), written by [Michael Lynn](https://twitter.com/mikeymikey)
+This tool would not be possible without [nibbler](https://github.com/pudquick/nibbler), written by [Michael Lynn](https://twitter.com/mikeymikey).
 
 ### Notes
 Because of the way git works, umad will not contain the `Logs` folder required for the postinstall to complete.
 
 In order to create a properly working package, you will need to run the following command:
-`munkipkg --sync /path/to/cloned_repo/mdm/umad`
+`munkipkg --sync /path/to/cloned_repo/mdm/umad`.
 
 ## OS Support
 The following operating system and versions have been tested.
@@ -60,7 +60,7 @@ Cut off date in UTC.
 ```
 
 ### Cut off date warning
-This is the number, in days, of when to start the initial UI warning. When this set of days passes, the user will be required to hit an "I Understand" button, followed by the "Close" button to exit out of the UI.
+This is the number, in days, of when to start the initial UI warning. When this set of days passes, the user will be required to click the **I Understand** button, followed by the **Close** button to exit out of the UI.
 ```xml
 <string>--cutoffdatewarning</string>
 <string>14</string>
@@ -103,14 +103,14 @@ If a device is DEP capable, umad will not honor DoNotDisturb settings so the nag
 
 If the admin wants to honor DoNotDisturb for DEP devices, use this feature.
 
-Non-DEP devices will honor the users DND settings
+Non-DEP devices will honor the users DND settings.
 
 ```xml
 <string>--honordndsettings</string>
 ```
 
 ### Logo path
-A custom logo path. Alternatively, just replace the included company_logo.png
+A custom logo path. Alternatively, just replace the included `company_logo.png`.
 ```xml
 <string>--logopath</string>
 <string>/Some/Custom/Path/company_logo.png</string>
@@ -161,7 +161,7 @@ This is the URL to open for the Manual Enrollment button.
 ```
 
 ### Nag screenshot path
-A custom nag screenshot path. Alternatively, just replace the included nag_ss.png
+A custom nag screenshot path. Alternatively, just replace the included `nag_ss.png`.
 ```xml
 <string>--nagsspath</string>
 <string>/Some/Custom/Path/nag_ss.png</string>
@@ -196,14 +196,14 @@ This is the text for the third paragraph.
 ```
 
 ### Profile identifier
-This is the profile identifier for < 10.13 machines to check for enrollment. Should you not set this value, umad will attempt to look for a profile installed on the machine with the _PayloadType_ of `com.apple.mdm`
+This is the profile identifier for < 10.13 machines to check for enrollment. Should you not set this value, umad will attempt to look for a profile installed on the machine with the _PayloadType_ of `com.apple.mdm`.
 
 ```xml
 <string>--profileidentifier</string>
 <string>B68ABF1E-70E2-43B0-8300-AE65F9AFA330</string>
 ```
 
-To get this value, run the following command on a computer with your MDM profile installed: `profiles -C -o stdout-xml`
+To get this value, run the following command on a computer with your MDM profile installed: `profiles -C -o stdout-xml`.
 
 Look for the MDM profile and notate the identifier. Some MDMs may use a UUID for this value.
 
@@ -292,7 +292,7 @@ This is when the MDM cutoff has elapsed.
 ### Timer Final
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
-This is when the MDM cutoff is one hour or less
+This is when the MDM cutoff is one hour or less.
 ```xml
 <string>--timerfinal</string>
 <string>60</string>
@@ -337,7 +337,7 @@ This is the text for the third paragraph on the user Approved MDM UI.
 ```
 
 ### User Approved MDM screenshot path
-A custom uamdm screenshot path. Alternatively, just replace the included uamdm_ss.png.png
+A custom uamdm screenshot path. Alternatively, just replace the included `uamdm_ss.png.png`.
 ```xml
 <string>--uasspath</string>
 <string>/Some/Custom/Path/uamdm_ss.png</string>
