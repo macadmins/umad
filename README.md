@@ -1,4 +1,4 @@
-# UMAD
+# UMAD (macadmin's Slack #umad)
 [U]ser-facing
 [M]DM
 [A]pproval
