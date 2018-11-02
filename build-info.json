@@ -1,6 +1,6 @@
 {
     "distribution_style": true,
-    "identifier": "com.anothertoolappleshouldhaveprovided.umad",
+    "identifier": "com.erikng.umad",
     "install_location": "/",
     "name": "umad-${version}.pkg",
     "ownership": "recommended",
