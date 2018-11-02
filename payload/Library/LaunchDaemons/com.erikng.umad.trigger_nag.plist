@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.anothertoolappleshouldhaveprovided.umad.trigger_nag</string>
+	<string>com.erikng.umad.trigger_nag</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/Library/Application Support/umad/Resources/umad_trigger_nag</string>
