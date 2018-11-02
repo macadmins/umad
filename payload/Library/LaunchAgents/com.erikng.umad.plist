@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.anothertoolappleshouldhaveprovided.umad</string>
+	<string>com.erikng.umad</string>
 	<key>LimitLoadToSessionType</key>
 	<array>
 		<string>Aqua</string>
