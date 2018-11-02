@@ -45,11 +45,11 @@ def main(argv):
     os.chmod(umad_log_path, 0o777)
 
     lapath = os.path.join(target, 'Library', 'LaunchAgents',
-                          'com.anothertoolappleshouldhaveprovided.umad.plist')
+                          'com.erikng.umad.plist')
     ldpath1 = os.path.join(target, 'Library', 'LaunchDaemons',
-                           'com.anothertoolappleshouldhaveprovided.umad.check_dep_record.plist')
+                           'com.erikng.umad.check_dep_record.plist')
     ldpath2 = os.path.join(target, 'Library', 'LaunchDaemons',
-                           'com.anothertoolappleshouldhaveprovided.umad.trigger_nag.plist')
+                           'com.erikng.umad.trigger_nag.plist')
     # Fail the install if the admin forgets to change their paths and they
     # don't exist
     for item in [lapath, ldpath1, ldpath2]:
@@ -65,11 +65,11 @@ def main(argv):
         current_user_uid = str(currentuseruid[1])
 
         agents = [
-            'com.anothertoolappleshouldhaveprovided.umad'
+            'com.erikng.umad'
         ]
         daemons = [
-            'com.anothertoolappleshouldhaveprovided.umad.check_dep_record',
-            'com.anothertoolappleshouldhaveprovided.umad.trigger_nag'
+            'com.erikng.umad.check_dep_record',
+            'com.erikng.umad.trigger_nag'
         ]
 
         # Get the list of launch agents and daemons
