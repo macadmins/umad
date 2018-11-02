@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.anothertoolappleshouldhaveprovided.umad.check_dep_record</string>
+	<string>com.erikng.umad.check_dep_record</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/Library/Application Support/umad/Resources/umad_check_dep_record</string>
