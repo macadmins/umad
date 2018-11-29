@@ -1,5 +1,5 @@
 # UMAD (macadmin's Slack #umad)
-[U]ser-facing
+[U]niversal
 [M]DM
 [A]pproval
 [D]ialog
