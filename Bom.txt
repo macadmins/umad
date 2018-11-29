@@ -15,7 +15,7 @@
 ./Library/Application Support/umad/Resources/nibbler.py	100755	0/0	5035	1818762266
 ./Library/Application Support/umad/Resources/uamdm_ss.png	100755	0/0	54940	1985954285
 ./Library/LaunchAgents	40755	0/0
-./Library/LaunchAgents/com.anothertoolappleshouldhaveprovided.umad.plist	100755	0/0	4250	946649556
+./Library/LaunchAgents/com.erikng.umad.plist	100755	0/0	4250	946649556
 ./Library/LaunchDaemons	40755	0/0
-./Library/LaunchDaemons/com.anothertoolappleshouldhaveprovided.umad.check_dep_record.plist	100755	0/0	583	1854062333
-./Library/LaunchDaemons/com.anothertoolappleshouldhaveprovided.umad.trigger_nag.plist	100755	0/0	568	226088309
+./Library/LaunchDaemons/com.erikng.umad.check_dep_record.plist	100755	0/0	583	1854062333
+./Library/LaunchDaemons/com.erikng.umad.trigger_nag.plist	100755	0/0	568	226088309
