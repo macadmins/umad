@@ -604,6 +604,8 @@ def main():
     if not os.path.exists(umad_tmp_dir):
         os.makedirs(umad_tmp_dir)
 
+    nag_triggered = False
+    
     if skip_nag_check:
         # Trick logic into thinking device isn't DEP capable
         dep_capable = False
@@ -641,8 +643,6 @@ def main():
         else:
             dep_capable = False
             print 'Device DEP capable - False'
-
-        nag_triggered = False
 
         if dep_capable:
             # Trigger Nag event
