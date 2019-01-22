@@ -513,17 +513,17 @@ def touch(path):
 
 def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
     '''Update the umad UI for UAMDM'''
-    umad.views['field.paragraph1'].setStringValue_(uamdm_p1)
-    umad.views['field.paragraph2'].setStringValue_(uamdm_p2)
-    umad.views['field.paragraph3'].setStringValue_(uamdm_p3)
+    umad.views['field.paragraph1'].setStringValue_(uamdm_p1.decode('utf8'))
+    umad.views['field.paragraph2'].setStringValue_(uamdm_p2.decode('utf8'))
+    umad.views['field.paragraph3'].setStringValue_(uamdm_p3.decode('utf8'))
     umad.views['image.nagscreen'].setImage_(uamdm_ss_nsimage)
     umad.views['button.sysprefs'].setHidden_(False)
     umad.views['field.manualenrollmenttext'].setHidden_(True)
     umad.views['image.nagscreen'].setHidden_(False)
     umad.views['field.depfailuretext'].setHidden_(False)
     umad.views['field.depfailuresubtext'].setHidden_(False)
-    umad.views['field.depfailuretext'].setStringValue_(sysprefs_h1_text)
-    umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text)
+    umad.views['field.depfailuretext'].setStringValue_(sysprefs_h1_text.decode('utf8'))
+    umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text.decode('utf8'))
 
 
 def main():
@@ -723,18 +723,18 @@ def main():
     umad.attach(button_sysprefs, 'button.sysprefs')
 
     # Setup the UI fields
-    umad.views['field.titletext'].setStringValue_(opts.titletext)
-    umad.views['field.subtitletext'].setStringValue_(opts.subtitletext)
-    umad.views['field.duedatetext'].setStringValue_(opts.duedatetext)
-    umad.views['field.paragraph1'].setStringValue_(opts.paragraph1)
-    umad.views['field.paragraph2'].setStringValue_(opts.paragraph2)
-    umad.views['field.paragraph3'].setStringValue_(opts.paragraph3)
+    umad.views['field.titletext'].setStringValue_(opts.titletext.decode('utf8'))
+    umad.views['field.subtitletext'].setStringValue_(opts.subtitletext.decode('utf8'))
+    umad.views['field.duedatetext'].setStringValue_(opts.duedatetext.decode('utf8'))
+    umad.views['field.paragraph1'].setStringValue_(opts.paragraph1.decode('utf8'))
+    umad.views['field.paragraph2'].setStringValue_(opts.paragraph2.decode('utf8'))
+    umad.views['field.paragraph3'].setStringValue_(opts.paragraph3.decode('utf8'))
     umad.views['field.manualenrollmenttext'].setStringValue_(
-        opts.manualenrollmenttext)
+        opts.manualenrollmenttext.decode('utf8'))
     umad.views['field.depfailuretext'].setStringValue_(
-        opts.depfailuretext)
+        opts.depfailuretext.decode('utf8'))
     umad.views['field.depfailuresubtext'].setStringValue_(
-        opts.depfailuresubtext)
+        opts.depfailuresubtext.decode('utf8'))
 
     # Dynamically set username and serialnumber
     umad.views['field.username'].setStringValue_(str(user_name))
@@ -773,10 +773,10 @@ def main():
             umad.views['image.nagscreen'].setHidden_(True)
             umad.views['field.depfailuretext'].setHidden_(False)
             umad.views['field.depfailuretext'].setStringValue_(
-                manualenroll_h1_text)
+                manualenroll_h1_text.decode('utf8'))
             umad.views['field.depfailuresubtext'].setHidden_(False)
             umad.views['field.depfailuresubtext'].setStringValue_(
-                manualenroll_h2_text)
+                manualenroll_h2_text.decode('utf8'))
 
             # Bring back umad to the foreground, every 10 seconds
             timer = float(opts.timerelapsed)
@@ -895,19 +895,19 @@ def main():
         umad.views['image.nagscreen'].setHidden_(True)
         umad.views['field.depfailuretext'].setHidden_(False)
         umad.views['field.depfailuretext'].setStringValue_(
-            manualenroll_h1_text)
+            manualenroll_h1_text.decode('utf8'))
         umad.views['field.depfailuresubtext'].setHidden_(False)
         umad.views['field.depfailuresubtext'].setStringValue_(
-            manualenroll_h2_text)
+            manualenroll_h2_text.decode('utf8'))
     elif date_diff_seconds <= 0:
         umad.views['field.manualenrollmenttext'].setHidden_(True)
         umad.views['image.nagscreen'].setHidden_(False)
         umad.views['field.depfailuretext'].setHidden_(False)
         umad.views['field.depfailuretext'].setStringValue_(
-            opts.depfailuretext)
+            opts.depfailuretext.decode('utf8'))
         umad.views['field.depfailuresubtext'].setHidden_(False)
         umad.views['field.depfailuresubtext'].setStringValue_(
-            opts.depfailuresubtext)
+            opts.depfailuresubtext.decode('utf8'))
 
     # Do one final MDM check to instantly update the UI for UAMDM
     check_mdm_status(True)
