@@ -539,7 +539,7 @@ def run_arbitrary_script(script_path=None):
                 output, err = run.communicate()
                 print output
         else:
-            print "File {} was not found".format(filename)
+            print "File {} was not found".format(script_path)
     
 
 def main():
