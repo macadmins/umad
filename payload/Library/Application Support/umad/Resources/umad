@@ -76,12 +76,10 @@ def button_understand():
     umad.views['button.ok'].setEnabled_(True)
 
 
-def check_mdm_status(umadupdate, script=None):
+def check_mdm_status(umadupdate):
     '''Check MDM Status'''
     uamdm_enrolled = False
     mdm_enrolled = False
-    print script  ####DEBUG REMOVE
-    print 'umadupdate: %s' % umadupdate  ####DEBUG REMOVE
     # Check the OS and run our dep checks based on OS version
     if get_os_version() >= LooseVersion('10.13.4'):
         print 'Checking mdm status - modern'
@@ -89,9 +87,9 @@ def check_mdm_status(umadupdate, script=None):
             print 'MDM enrolled device %s' % get_os_version()
             uamdm_enrolled = True
             if umadupdate:
-                if script is not None:
-                    print 'UAMDM accepted.  Running %s' % script
-                    run_arbitrary_script(script)
+                if script_when_ui_quits is not None:
+                    print 'UAMDM accepted.  Running %s' % script_when_ui_quits
+                    run_arbitrary_script(script_when_ui_quits)
                 umad.quit()
         else:
             # Check if MDM is installed.
@@ -535,7 +533,7 @@ def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
 
 def run_arbitrary_script(script_path=None):
     '''Run a provided script'''
-    if script_path:
+    if script_path is not None:
         if os.path.exists(script_path):
                 run = subprocess.Popen(script_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 output, err = run.communicate()
@@ -560,7 +558,7 @@ def main():
         print 'WARN - Did not set mdm profile identifier!'
 
     # Check the OS and run our dep checks based on OS version
-    mdm_status = check_mdm_status(False, opts.scriptwhenuiquits)
+    mdm_status = check_mdm_status(False)
     uamdm_enrolled = mdm_status[0]
     mdm_enrolled = mdm_status[1]
 
@@ -610,6 +608,8 @@ def main():
     manualenroll_h1_text = opts.manualenrollh1text
     global manualenroll_h2_text
     manualenroll_h2_text = opts.manualenrollh2text
+    global script_when_ui_quits
+    script_when_ui_quits = opts.scriptwhenuiquits
 
     # Get the current username
     user_name, current_user_uid, _ = get_console_username_info()
@@ -928,7 +928,7 @@ def main():
             opts.depfailuresubtext.decode('utf8'))
 
     # Do one final MDM check to instantly update the UI for UAMDM
-    check_mdm_status(True, opts.scriptwhenuiquits)
+    check_mdm_status(True)
 
     umad.run()
 
