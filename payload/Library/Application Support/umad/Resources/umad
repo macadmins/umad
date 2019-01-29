@@ -366,7 +366,7 @@ def get_parsed_options():
                  default='B68ABF1E-70E2-43B0-8300-AE65F9AFA330',
                  help=('Required: MDM profile identifier.'))
     o.add_option('--scriptwhenuiquits',
-                 help=('Optional: Script to run when UI exists.'))
+                 help=('Optional: Script to run when UI exits.'))
     o.add_option('--subtitletext',
                  default='A friendly reminder from your local IT team',
                  help=('Required: Sub-title text.'))
