@@ -722,6 +722,10 @@ def main():
     umad.attach(button_understand, 'button.understand')
     umad.attach(button_sysprefs, 'button.sysprefs')
 
+    # Setup More Info button visibility
+    if not more_info_url_set:
+        umad.views['button.moreinfo'].setHidden_(True)
+        
     # Setup the UI fields
     umad.views['field.titletext'].setStringValue_(opts.titletext.decode('utf8'))
     umad.views['field.subtitletext'].setStringValue_(opts.subtitletext.decode('utf8'))
@@ -851,9 +855,6 @@ def main():
         else:
             umad.views['field.depfailuresubtext'].setStringValue_(
                 'Please contact your system administrator.')
-
-        if not more_info_url_set:
-            umad.views['button.moreinfo'].setHidden_(True)
 
         umad.views['field.depfailuretext'].setHidden_(False)
         umad.views['field.depfailuresubtext'].setHidden_(False)
