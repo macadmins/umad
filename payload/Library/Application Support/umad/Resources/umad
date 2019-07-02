@@ -269,6 +269,11 @@ def get_all_notifications_modern():
                 plist_data = plist['req']
                 date = row['delivered_date']
                 date_time = datetime.utcfromtimestamp(date + 978307200)
+                if date == None: 
+                  # This avoids a type error for apps that put entries with 
+                  # blank delivery dates in the notification DB for syncing purposes. 
+                  # We don't care about those anyway.
+                  continue
                 app = row['app']
                 title = plist_data.get('titl', '')
                 message = plist_data.get('body', '')
