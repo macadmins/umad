@@ -83,7 +83,7 @@ This is the first set of text above the enrollment button.
 ```
 
 ### DEP failure subtext
-If a user has a DEP capable device, but they are passed the enrollment window, they will have an option to manually enroll.
+If a user has a DEP capable device, but they are past the enrollment window, they will have an option to manually enroll.
 
 This is the second set of text above the enrollment button.
 
