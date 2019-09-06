@@ -5,7 +5,7 @@
 [D]ialog
 
 ## Purpose
-A Professional Tool to help users with pre-existing devices enrolled into MDM.
+A Professional Tool to help users with getting pre-existing devices enrolled into MDM.
 
 ## Screenshots
 
