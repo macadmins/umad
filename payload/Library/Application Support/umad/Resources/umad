@@ -87,6 +87,9 @@ def check_mdm_status(umadupdate):
             print 'MDM enrolled device %s' % get_os_version()
             uamdm_enrolled = True
             if umadupdate:
+                if script_when_ui_quits is not None:
+                    print 'UAMDM accepted.  Running %s' % script_when_ui_quits
+                    run_arbitrary_script(script_when_ui_quits)
                 umad.quit()
         else:
             # Check if MDM is installed.
@@ -367,6 +370,8 @@ def get_parsed_options():
     o.add_option('--profileidentifier',
                  default='B68ABF1E-70E2-43B0-8300-AE65F9AFA330',
                  help=('Required: MDM profile identifier.'))
+    o.add_option('--scriptwhenuiquits',
+                 help=('Optional: Script to run when UI exits.'))
     o.add_option('--subtitletext',
                  default='A friendly reminder from your local IT team',
                  help=('Required: Sub-title text.'))
@@ -531,6 +536,17 @@ def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
     umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text.decode('utf8'))
 
 
+def run_arbitrary_script(script_path=None):
+    '''Run a provided script'''
+    if script_path is not None:
+        if os.path.exists(script_path):
+                run = subprocess.Popen(script_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output, err = run.communicate()
+                print output
+        else:
+            print "File {} was not found".format(script_path)
+    
+
 def main():
     '''Main thread'''
     opts, _ = get_parsed_options()
@@ -597,6 +613,8 @@ def main():
     manualenroll_h1_text = opts.manualenrollh1text
     global manualenroll_h2_text
     manualenroll_h2_text = opts.manualenrollh2text
+    global script_when_ui_quits
+    script_when_ui_quits = opts.scriptwhenuiquits
 
     # Get the current username
     user_name, current_user_uid, _ = get_console_username_info()
