@@ -329,6 +329,9 @@ def get_parsed_options():
     o.add_option('--logopath',
                  default='company_logo.png',
                  help=('Optional: Path to company logo.'))
+    o.add_option('--manualenrollment',
+                 default='Manual Enrollment',
+                 help=('Required: Manual enrollment button text'))
     o.add_option('--manualenrollmenturl',
                  default='https://apple.com',
                  help=('Required: Manual Enrollment URL.'))
@@ -341,6 +344,9 @@ def get_parsed_options():
     o.add_option('--manualenrollh2text',
                  default='Click on the Manual Enrollment button below.',
                  help=('Optional: Manual enrollment text.'))
+    o.add_option('--moreinfo',
+                 default='More Info',
+                 help=('Required: More info button text'))
     o.add_option('--moreinfourl',
                  default='https://google.com',
                  help=('Required: More info URL.'))
@@ -370,6 +376,9 @@ def get_parsed_options():
     o.add_option('--subtitletext',
                  default='A friendly reminder from your local IT team',
                  help=('Required: Sub-title text.'))
+    o.add_option('--sysprefs',
+                 default='Open System Preferences',
+                 help=('Required: System preferences button text'))
     o.add_option('--sysprefsh1text',
                  default='Want this box to go away?',
                  help=('Required: Sys Prefs header 1 text.'))
@@ -414,6 +423,9 @@ def get_parsed_options():
     o.add_option('--uasspath',
                  default='uamdm_ss.png',
                  help=('Optional: Path to User Accepted MDM screenshot.'))
+    o.add_option('--understand',
+                 default='I understand.',
+                 help=('Required: Understand button text'))
 
     return o.parse_args()
 
@@ -744,6 +756,12 @@ def main():
         opts.depfailuretext.decode('utf8'))
     umad.views['field.depfailuresubtext'].setStringValue_(
         opts.depfailuresubtext.decode('utf8'))
+
+    # Setup the UI buttons
+    umad.views['button.manualenrollment'].setTitle_(opts.manualenrollment.decode('utf8'))
+    umad.views['button.moreinfo'].setTitle_(opts.moreinfo.decode('utf8'))
+    umad.views['button.sysprefs'].setTitle_(opts.sysprefs.decode('utf8'))
+    umad.views['button.understand'].setTitle_(opts.understand.decode('utf8'))
 
     # Dynamically set username and serialnumber
     umad.views['field.username'].setStringValue_(str(user_name))

@@ -60,6 +60,16 @@
 		<!--<string>--uamdmparagraph3</string> -->
 		<!--<string>Please go to System Preferences -> Profiles, click on the Device Enrollment profile and click on the approve button.</string> -->
 		<!-- -->
+		<!-- Buttons -->
+		<!--<string>--manualenrollment</string> -->
+		<!--<string>Manual Enrollment</string> -->
+		<!--<string>--moreinfo</string> -->
+		<!--<string>More Info</string> -->
+		<!--<string>--sysprefs</string> -->
+		<!--<string>Open System Preferences</string> -->
+		<!--<string>--understand</string> -->
+		<!--<string>I understand.</string> -->
+		<!-- -->
 		<!-- URLs -->
 		<!--<string>--manualenrollmenturl</string> -->
 		<!--<string>https://apple.com</string> -->
