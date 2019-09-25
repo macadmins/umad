@@ -39,7 +39,7 @@ The following operating system and versions have been tested.
 ## Getting started
 To start, you can use the default settings in `/Library/LaunchAgent/com.anothertoolappleshouldhaveprovided.umad.plist`
 
-Essentially every component of the UI is customizable, using the above LaunchAgent.  
+Essentially every component of the UI is customizable, using the above LaunchAgent.
 * Create your .pkg with munki-pkg and install on your target workstation.
 * Open terminal.
 <i>example</i>
@@ -349,6 +349,34 @@ You can customize the uamdm screenshot path. Option 2, just replace the included
 ```xml
 <string>--uasspath</string>
 <string>/Some/Custom/Path/uamdm_ss.png</string>
+```
+
+### Manual Enrollment button
+This is the label for the button that loads `manualenrollmenturl`.
+```xml
+<string>--manualenrollment</string>
+<string>Manual Enrollment</string>
+```
+
+### More Info button
+This is the label for the button that loads `moreinfourl`.
+```xml
+<string>--moreinfo</string>
+<string>More Info</string>
+```
+
+### Open System Preferences button
+This is the label for the button that launches the Profiles preference pane.
+```xml
+<string>--sysprefs</string>
+<string>Open System Preferences</string>
+```
+
+### I Understand button
+This is the label for the button that users will be required to click to close the UI after `cutoffdatewarning` days have passed.
+```xml
+<string>--understand</string>
+<string>I understand.</string>
 ```
 
 ## Tips, Tricks, and Troubleshooting
