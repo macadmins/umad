@@ -159,6 +159,13 @@ Configure the Manual Enrollment button with a custom URL.
 <string>https://apple.com</string>
 ```
 
+### Manual enrollment paragraph 3 text
+This is the text for the third paragraph on the manual enrollment UI.
+```xml
+<string>--manualenrollparagraph3</string>
+<string>To enroll, download the profile using the button below, and click Install. Once prompted, log in with your username and password.</string>
+```
+
 ### More info URL
 When you see the Manual Enrollment button, you can customize a URL directing the users to more information.
 ```xml
@@ -195,7 +202,7 @@ This is the text for the second paragraph. 160 character limit.
 <string>To enroll, just look for the below notification, and click Details. Once prompted, log in with your username and password.</string>
 ```
 
-### Paragraph 2 text
+### Paragraph 3 text
 This is the text for the third paragraph. 160 character limit.
 ```xml
 <string>--paragraph3</string>

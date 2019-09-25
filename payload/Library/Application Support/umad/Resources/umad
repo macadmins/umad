@@ -341,6 +341,11 @@ def get_parsed_options():
     o.add_option('--manualenrollh2text',
                  default='Click on the Manual Enrollment button below.',
                  help=('Optional: Manual enrollment text.'))
+    o.add_option('--manualenrollparagraph3',
+                 default='To enroll, download the profile using the button '
+                 'below, and click Install. Once prompted, log in with '
+                 'your username and password.',
+                 help=('Required: Manual enrollment paragraph 3 text.'))
     o.add_option('--moreinfourl',
                  default='https://google.com',
                  help=('Required: More info URL.'))
@@ -777,6 +782,8 @@ def main():
             umad.views['button.understand'].setHidden_(True)
 
             # Show the manual enrollment UI for emergency purposes
+            umad.views['field.paragraph3'].setStringValue_(
+                opts.manualenrollparagraph3.decode('utf8'))
             umad.views['button.manualenrollment'].setHidden_(False)
             umad.views['field.manualenrollmenttext'].setHidden_(False)
             umad.views['image.nagscreen'].setHidden_(True)
@@ -896,6 +903,8 @@ def main():
     # Also if admin always wants the break glass option
     # Also enable if dep nag didn't actually pop-up
     if (not dep_capable and mdm_profile_set) or opts.enableenrollmentbutton or not nag_triggered:
+        umad.views['field.paragraph3'].setStringValue_(
+            opts.manualenrollparagraph3.decode('utf8'))
         umad.views['button.manualenrollment'].setHidden_(False)
         umad.views['field.manualenrollmenttext'].setHidden_(False)
         umad.views['image.nagscreen'].setHidden_(True)

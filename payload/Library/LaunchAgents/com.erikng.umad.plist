@@ -39,6 +39,8 @@
 		<!--<string>Want this box to go away?</string> -->
 		<!--<string>--manualenrollh2text</string> -->
 		<!--<string>Click on the Manual Enrollment button below.</string> -->
+		<!--<string>--manualenrollparagraph3</string> -->
+		<!--<string>To enroll, download the profile using the button below, and click Install. Once prompted, log in with your username and password.</string> -->
 		<!--<string>--paragraph1</string> -->
 		<!--<string>Enrollment into MDM is required to ensure that IT can protect your computer with basic security necessities like encryption and threat detection.</string> -->
 		<!--<string>--paragraph2</string> -->
