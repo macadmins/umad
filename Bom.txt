@@ -1,19 +1,18 @@
 .	40755	0/0
 ./Library	40755	0/0
-./Library/Application Support	40755	0/0
-./Library/Application Support/umad	40755	0/0
-./Library/Application Support/umad/Logs	40755	0/0
-./Library/Application Support/umad/Resources	40755	0/0
-./Library/Application Support/umad/Resources/company_logo.png	100755	0/0	16622	2197199182
-./Library/Application Support/umad/Resources/nag_ss.png	100755	0/0	31794	3177474883
-./Library/Application Support/umad/Resources/umad	100755	0/0	29025	2236701796
-./Library/Application Support/umad/Resources/umad.nib	40755	0/0
-./Library/Application Support/umad/Resources/umad.nib/designable.nib	100755	0/0	24478	3050605350
-./Library/Application Support/umad/Resources/umad.nib/keyedobjects.nib	100755	0/0	18282	1945778775
-./Library/Application Support/umad/Resources/umad_check_dep_record	100755	0/0	1103	545638615
-./Library/Application Support/umad/Resources/umad_trigger_nag	100755	0/0	928	2716832333
-./Library/Application Support/umad/Resources/nibbler.py	100755	0/0	5035	1818762266
-./Library/Application Support/umad/Resources/uamdm_ss.png	100755	0/0	54940	1985954285
+./Library/umad	40755	0/0
+./Library/umad/Logs	40755	0/0
+./Library/umad/Resources	40755	0/0
+./Library/umad/Resources/company_logo.png	100755	0/0	16622	2197199182
+./Library/umad/Resources/nag_ss.png	100755	0/0	31794	3177474883
+./Library/umad/Resources/umad	100755	0/0	29025	2236701796
+./Library/umad/Resources/umad.nib	40755	0/0
+./Library/umad/Resources/umad.nib/designable.nib	100755	0/0	24478	3050605350
+./Library/umad/Resources/umad.nib/keyedobjects.nib	100755	0/0	18282	1945778775
+./Library/umad/Resources/umad_check_dep_record	100755	0/0	1103	545638615
+./Library/umad/Resources/umad_trigger_nag	100755	0/0	928	2716832333
+./Library/umad/Resources/nibbler.py	100755	0/0	5035	1818762266
+./Library/umad/Resources/uamdm_ss.png	100755	0/0	54940	1985954285
 ./Library/LaunchAgents	40755	0/0
 ./Library/LaunchAgents/com.erikng.umad.plist	100755	0/0	4250	946649556
 ./Library/LaunchDaemons	40755	0/0
