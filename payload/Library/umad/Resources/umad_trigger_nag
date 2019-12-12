@@ -1,9 +1,10 @@
-#!/Library/cpe/frameworks/Python.framework/Versions/3.8/bin/python3
+#!/Library/umad/frameworks/Python.framework/Versions/3.8/bin/python3
 # encoding: utf-8
 import os
 import platform
 import subprocess
 import time
+import Foundation
 from distutils.version import LooseVersion
 
 
