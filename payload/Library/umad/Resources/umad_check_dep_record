@@ -13,6 +13,11 @@ def get_os_version():
     return LooseVersion(platform.mac_ver()[0])
 
 
+def umadlog(text):
+    '''logger for umad'''
+    Foundation.NSLog('[UMAD] ' + text)
+
+
 def has_dep_activation_record(plist_path):
     # We can't use -o stdout-xml due to another Apple bug :)
     good_record = '/private/var/db/ConfigurationProfiles/.cloudConfigRecordFound'
@@ -95,9 +100,9 @@ def main():
     main_umad_path = '/Library/umad'
     plist_path = os.path.join(main_umad_path, 'Resources/dep_record.plist')
     if has_dep_activation_record(plist_path):
-        print('Has DEP activation record - True')
+        umadlog('Has DEP activation record - True')
     else:
-        print('Has DEP activation record - False')
+        umadlog('Has DEP activation record - False')
 
     # Stop this from happening all the time
     if os.path.exists(dot_path):

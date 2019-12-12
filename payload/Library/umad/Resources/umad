@@ -28,7 +28,7 @@ from nibbler import *
 class timerController(Foundation.NSObject):
     '''Thanks to frogor for help in figuring this part out'''
     def activateWindow_(self, timer_obj):
-        print('Re-activating .nib to the foreground')
+        umadlog('Re-activating .nib to the foreground')
         # Move the application to the front
         NSApplication.sharedApplication().activateIgnoringOtherApps_(True)
         # Move the main window to the front
@@ -80,16 +80,16 @@ def check_mdm_status(umadupdate):
     mdm_enrolled = False
     # Check the OS and run our dep checks based on OS version
     if get_os_version() >= LooseVersion('10.13.4'):
-        print('Checking mdm status - modern')
+        umadlog('Checking mdm status - modern')
         if check_mdm_status_modern()[2]:
-            print('MDM enrolled device %s' % get_os_version())
+            umadlog('MDM enrolled device %s' % get_os_version())
             uamdm_enrolled = True
             if umadupdate:
                 umad.quit()
         else:
             # Check if MDM is installed.
             if check_mdm_status_modern()[1]:
-                print('Non-UAMDM enrolled device, trigger UAMDM UI')
+                umadlog('Non-UAMDM enrolled device, trigger UAMDM UI')
                 mdm_enrolled = True
                 uamdm_enrolled = False
                 if umadupdate:
@@ -98,10 +98,10 @@ def check_mdm_status(umadupdate):
     else:
         # Anything lower than 10.13.4, we just check if the profile is
         # installed
-        print('Checking mdm status - legacy')
+        umadlog('Checking mdm status - legacy')
         if check_mdm_legacy(mdm_profile_identifier):
             mdm_enrolled = True
-            print('MDM enrolled device %s' % get_os_version())
+            umadlog('MDM enrolled device %s' % get_os_version())
             if umadupdate:
                 umad.quit()
     return uamdm_enrolled, mdm_enrolled
@@ -111,7 +111,7 @@ def check_mdm_legacy(mdm_profile_identifier):
     '''Check MDM enrollment for older machines'''
     check_payload_type = False
     if mdm_profile_identifier == 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330':
-        print('WARN - Did not set mdm profile identifier!')
+        umadlog('WARN - Did not set mdm profile identifier!')
         check_payload_type = True
     cmd = ['/usr/bin/profiles', '-C', '-o', 'stdout-xml']
     run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -299,6 +299,10 @@ def get_os_version():
     return LooseVersion(platform.mac_ver()[0])
 
 
+def umadlog(text):
+    '''logger for umad'''
+    Foundation.NSLog('[UMAD] ' + text)
+
 def get_parsed_options():
     '''Return the parsed options and args for this application.'''
     # Options
@@ -476,7 +480,7 @@ def load_umad_globals():
         global umad
         umad = Nibbler(os.path.join(umad_path, 'umad.nib'))
     except IOError:
-        print('Unable to load umad nib file!')
+        umadlog('Unable to load umad nib file!')
         exit(20)
 
 
@@ -538,7 +542,7 @@ def main():
         opts.manualenrollmenturl != 'https://apple.com')
     more_info_url_set = bool(opts.moreinfourl != 'https://google.com')
     if not mdm_profile_set:
-        print('WARN - Did not set mdm profile identifier!')
+        umadlog('WARN - Did not set mdm profile identifier!')
 
     # Check the OS and run our dep checks based on OS version
     mdm_status = check_mdm_status(False)
@@ -554,7 +558,7 @@ def main():
     # If we get here, device is not MDM enrolled or device is 10.13.4+
     # without UAMDM - check if umad is already running
     if umad_already_loaded():
-        print('umad already loaded!')
+        umadlog('umad already loaded!')
         exit(0)
 
     # We don't want to nag if device is UAMDM and DEP capable at the same time
@@ -565,7 +569,7 @@ def main():
         skip_nag_check = bool(
             get_os_version() >= LooseVersion('10.13.4') and mdm_enrolled and mdm_profile_set)
     else:
-        print('WARN - cannot validate enrolled MDM is correct!')
+        umadlog('WARN - cannot validate enrolled MDM is correct!')
         skip_nag_check = bool(
             get_os_version() >= LooseVersion('10.13.4') and mdm_enrolled)
 
@@ -618,7 +622,7 @@ def main():
         # on DND even if it's not on
         if not original_dnd_status:
             do_not_disturb_set_value(True)
-            print('Temporarily enabling DND for DEP activation record check')
+            umadlog('Temporarily enabling DND for DEP activation record check')
             # Restart Notification Center to have CFPreferences take effect
             restart_notification_center()
 
@@ -627,12 +631,12 @@ def main():
         trigger_path = os.path.join(umad_tmp_dir, '.check_dep_record')
         touch(trigger_path)
         while os.path.exists(trigger_path):
-            print('Waiting for DEP record check...')
+            umadlog('Waiting for DEP record check...')
             time.sleep(1)
 
         if has_dep_activation_record(dep_plist):
             dep_capable = True
-            print('Device DEP capable - True')
+            umadlog('Device DEP capable - True')
             # We need to disable DND so the nag can show up
             do_not_disturb_set_value(False)
             # get the default User Notification Center
@@ -641,7 +645,7 @@ def main():
             user_nc.removeAllDeliveredNotifications()
         else:
             dep_capable = False
-            print('Device DEP capable - False')
+            umadlog('Device DEP capable - False')
 
         if dep_capable:
             # Trigger Nag event
@@ -649,7 +653,7 @@ def main():
             nag_trigger_path = os.path.join(umad_tmp_dir, '.trigger_nag')
             touch(nag_trigger_path)
             while os.path.exists(nag_trigger_path):
-                print('Waiting for nag event...')
+                umadlog('Waiting for nag event...')
                 time.sleep(1)
             restart_notification_center()
             # There is a bug in versions of macOS, where the nag will not show
@@ -673,21 +677,21 @@ def main():
                         nag_triggered = bool(
                             last_notification in valid_notifications)
                         if nag_triggered:
-                            print('Triggered nag event - True')
+                            umadlog('Triggered nag event - True')
                             break
                     time.sleep(0.1)
                     retries -= 1
                     if retries == 0:
                         break
             if not nag_triggered:
-                print('Triggered nag event - False')
+                umadlog('Triggered nag event - False')
 
         if opts.honordndsettings or not dep_capable:
             # We will honor DND settings for non-DEP devices, unless the admin
             # explicitly wants this- Otherwise the nag will actually disappear
             # immediately
             if original_dnd_status:
-                print('Re-enabling DND for user as it was previously set')
+                umadlog('Re-enabling DND for user as it was previously set')
                 do_not_disturb_set_value(True)
                 # Restart Notification Center to have CFPreferences take effect
                 restart_notification_center()
@@ -861,7 +865,7 @@ def main():
         # If you didn't specify any defaults and the device is not DEP capable
         # it's really hard to have good data points
         if not dep_capable:
-            print('Did not specify any defaults and device is not DEP capable!')
+            umadlog('Did not specify any defaults and device is not DEP capable!')
 
         timer = float(opts.timerday3)
         date_diff_seconds = 1000000
@@ -869,14 +873,14 @@ def main():
     # Use cut off dates, but don't use the timer functionality
     if opts.notimer:
         umad.timer.invalidate()
-        print('Timer invalidated!')
+        umadlog('Timer invalidated!')
     else:
-        print('Timer is set to %s' % str(timer))
+        umadlog('Timer is set to %s' % str(timer))
 
     # Setup our mdm timer controller
     umad.mdm_timer_controller = mdmTimerController.alloc().init()
     mdm_timer = float(opts.timermdm)
-    print('MDM Timer is set to %s' % str(mdm_timer))
+    umadlog('MDM Timer is set to %s' % str(mdm_timer))
     umad.mdm_timer = (
         Foundation
         .NSTimer
