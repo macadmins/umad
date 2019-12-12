@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/Library/cpe/frameworks/Python.framework/Versions/3.8/bin/python3
 # -*- coding: utf-8 -*-
 '''umad - python wrapper for UAMDM/DEP enrollment and annoying the users to
 actually enroll.'''
@@ -12,9 +12,7 @@ import time
 import webbrowser
 from datetime import datetime
 from distutils.version import LooseVersion
-
 import Foundation
-import FoundationPlist
 import objc
 from AppKit import NSApplication, NSImage
 from Foundation import (CFPreferencesAppSynchronize, CFPreferencesCopyAppValue,
@@ -30,7 +28,7 @@ from nibbler import *
 class timerController(Foundation.NSObject):
     '''Thanks to frogor for help in figuring this part out'''
     def activateWindow_(self, timer_obj):
-        print 'Re-activating .nib to the foreground'
+        print('Re-activating .nib to the foreground')
         # Move the application to the front
         NSApplication.sharedApplication().activateIgnoringOtherApps_(True)
         # Move the main window to the front
@@ -82,16 +80,16 @@ def check_mdm_status(umadupdate):
     mdm_enrolled = False
     # Check the OS and run our dep checks based on OS version
     if get_os_version() >= LooseVersion('10.13.4'):
-        print 'Checking mdm status - modern'
+        print('Checking mdm status - modern')
         if check_mdm_status_modern()[2]:
-            print 'MDM enrolled device %s' % get_os_version()
+            print('MDM enrolled device %s' % get_os_version())
             uamdm_enrolled = True
             if umadupdate:
                 umad.quit()
         else:
             # Check if MDM is installed.
             if check_mdm_status_modern()[1]:
-                print 'Non-UAMDM enrolled device, trigger UAMDM UI'
+                print('Non-UAMDM enrolled device, trigger UAMDM UI')
                 mdm_enrolled = True
                 uamdm_enrolled = False
                 if umadupdate:
@@ -100,10 +98,10 @@ def check_mdm_status(umadupdate):
     else:
         # Anything lower than 10.13.4, we just check if the profile is
         # installed
-        print 'Checking mdm status - legacy'
+        print('Checking mdm status - legacy')
         if check_mdm_legacy(mdm_profile_identifier):
             mdm_enrolled = True
-            print 'MDM enrolled device %s' % get_os_version()
+            print('MDM enrolled device %s' % get_os_version())
             if umadupdate:
                 umad.quit()
     return uamdm_enrolled, mdm_enrolled
@@ -113,14 +111,14 @@ def check_mdm_legacy(mdm_profile_identifier):
     '''Check MDM enrollment for older machines'''
     check_payload_type = False
     if mdm_profile_identifier == 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330':
-        print 'WARN - Did not set mdm profile identifier!'
+        print('WARN - Did not set mdm profile identifier!')
         check_payload_type = True
     cmd = ['/usr/bin/profiles', '-C', '-o', 'stdout-xml']
     run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = run.communicate()
     if check_payload_type:
         try:
-            plist = plistlib.readPlistFromString(output)
+            plist = plistlib.loads(output)
         except:  # noqa
             plist = {'_computerlevel': []}
         try:
@@ -137,7 +135,7 @@ def check_mdm_legacy(mdm_profile_identifier):
             return False
     else:
         try:
-            plist = plistlib.readPlistFromString(output)
+            plist = plistlib.loads(output)
         except:  # noqa
             plist = {'_computerlevel': []}
         try:
@@ -160,7 +158,7 @@ def check_mdm_high_sierra_legacy():
     cmd = ['/usr/bin/profiles', 'status', '-type', 'enrollment']
     run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = run.communicate()
-    status = output.split('\n')[0]
+    status = output.split(b'\n')[0]
     if enrolled in status:
         return True
     elif not_enrolled in status:
@@ -170,16 +168,16 @@ def check_mdm_high_sierra_legacy():
 
 def check_mdm_status_modern():
     '''Only for 10.13.4 and higher'''
-    dep_enrolled = 'Enrolled via DEP: Yes'
+    dep_enrolled = b'Enrolled via DEP: Yes'
     # dep_not_enrolled = 'Enrolled via DEP: No'
-    uamdm_enrolled = 'MDM enrollment: Yes (User Approved)'
+    uamdm_enrolled = b'MDM enrollment: Yes (User Approved)'
     # uamdm_not_enroll = 'MDM enrollment: Yes'
-    mdm_not_enrolled = 'MDM enrollment: No'
+    mdm_not_enrolled = b'MDM enrollment: No'
     cmd = ['/usr/bin/profiles', 'status', '-type', 'enrollment']
     run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = run.communicate()
-    dep_status = output.split('\n')[0]
-    mdm_status = output.split('\n')[1]
+    dep_status = output.split(b'\n')[0]
+    mdm_status = output.split(b'\n')[1]
     dep_enrollment_status = bool(dep_enrolled == dep_status)
     mdm_enrollment_status = bool(mdm_not_enrolled != mdm_status)
     uamdm_enrollment_status = bool(uamdm_enrolled == mdm_status)
@@ -216,7 +214,7 @@ def get_all_notifications_legacy():
     '''Parse old notification db
     Largely inspired from https://github.com/ydkhatri/MacForensics'''
     try:
-        db_path = 'com.apple.notificationcenter/db/db'
+        db_path = b'com.apple.notificationcenter/db/db'
         input_path = os.path.join(get_user_temp_dir(), db_path)
         if os.path.exists(input_path):
             conn = sqlite3.connect(input_path)
@@ -232,7 +230,7 @@ def get_all_notifications_legacy():
             for row in cursor:
                 data = {}
                 if get_os_version() >= LooseVersion('10.11'):
-                    plist = FoundationPlist.readPlistFromString(row['data'])
+                    plist = plistlib.loads(row['data'])
                     title = plist['$objects'][2]
                     message = plist['$objects'][3]
                     data['message'] = message
@@ -254,7 +252,7 @@ def get_all_notifications_modern():
     '''Parse High Sierra's notification db
     Largely inspired from https://github.com/ydkhatri/MacForensics'''
     try:
-        db_path = 'com.apple.notificationcenter/db2/db'
+        db_path = b'com.apple.notificationcenter/db2/db'
         input_path = os.path.join(get_user_temp_dir(), db_path)
         if os.path.exists(input_path):
             conn = sqlite3.connect(input_path)
@@ -265,13 +263,13 @@ def get_all_notifications_modern():
                 'app.app_id=record.app_id) as app, data, presented, '\
                 'delivered_date FROM record')
             for row in cursor:
-                plist = FoundationPlist.readPlistFromString(row['data'])
+                plist = plistlib.loads(row['data'])
                 plist_data = plist['req']
                 date = row['delivered_date']
                 date_time = datetime.utcfromtimestamp(date + 978307200)
-                if date == None: 
-                  # This avoids a type error for apps that put entries with 
-                  # blank delivery dates in the notification DB for syncing purposes. 
+                if date == None:
+                  # This avoids a type error for apps that put entries with
+                  # blank delivery dates in the notification DB for syncing purposes.
                   # We don't care about those anyway.
                   continue
                 app = row['app']
@@ -421,29 +419,24 @@ def get_parsed_options():
 def get_serial():
     '''Get system serial number'''
     # Credit to Michael Lynn
-    iokit_bundle = NSBundle.bundleWithIdentifier_("com.apple.framework.IOKit")
-    functions = [
-        ("IOServiceGetMatchingService", b"II@"),
-        ("IOServiceMatching", b"@*"),
-        ("IORegistryEntryCreateCFProperty", b"@I@@I")
-    ]
-    objc.loadBundleFunctions(iokit_bundle, globals(), functions)
+    IOKit_bundle = Foundation.NSBundle.bundleWithIdentifier_('com.apple.framework.IOKit')
 
-    kio_master_port_default = 0
-    kio_platform_serial_number_key = 'IOPlatformSerialNumber'
-    kcf_allocator_default = None
+    functions = [("IOServiceGetMatchingService", b"II@"),
+                 ("IOServiceMatching", b"@*"),
+                 ("IORegistryEntryCreateCFProperty", b"@I@@I"),
+                ]
 
+    objc.loadBundleFunctions(IOKit_bundle, globals(), functions)
     # pylint: disable=undefined-variable
-    platform_expert = IOServiceGetMatchingService(
-        kio_master_port_default,
-        IOServiceMatching("IOPlatformExpertDevice")
-    )
     serial = IORegistryEntryCreateCFProperty(
-        platform_expert,
-        kio_platform_serial_number_key,
-        kcf_allocator_default,
-        0
-    )
+        IOServiceGetMatchingService(
+            0,
+            IOServiceMatching(
+                "IOPlatformExpertDevice".encode("utf-8")
+            )),
+        Foundation.NSString.stringWithString_("IOPlatformSerialNumber"),
+        None,
+        0)
     # pylint: enable=undefined-variable
     return serial
 
@@ -458,7 +451,8 @@ def get_user_temp_dir():
 def has_dep_activation_record(plist_path):
     '''Check if we have a dep activation record'''
     try:
-        plist = plistlib.readPlist(plist_path)
+        with open(plist_path, "rb") as file:
+            plist = plistlib.load(file)
     except:  # noqa
         plist = {}
     if not plist:
@@ -482,21 +476,21 @@ def load_umad_globals():
         global umad
         umad = Nibbler(os.path.join(umad_path, 'umad.nib'))
     except IOError:
-        print 'Unable to load umad nib file!'
+        print('Unable to load umad nib file!')
         exit(20)
 
 
 def umad_already_loaded():
     '''Check if umad is already loaded'''
-    umad_string = '/Library/Application Support/umad/Resources/umad'
+    umad_string = '/Library/umad/Resources/umad'
     cmd = ['/bin/ps', '-o', 'pid', '-o', 'command']
     run = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = run.communicate()
-    status = output.split('\n')
+    status = output.split(b'\n')
     current_pid = str(os.getpid())
     for line in status:
-        if umad_string in line:
-            if current_pid in line:
+        if bytes(umad_string, 'utf-8') in line:
+            if bytes(current_pid, 'utf-8') in line:
                 pass
             else:
                 return True
@@ -510,7 +504,7 @@ def touch(path):
         proc = subprocess.Popen(touchfile, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
         touchfileoutput, err = proc.communicate()
-        os.chmod(path, 0777)
+        os.chmod(path, 0o777)
         return touchfileoutput
     except Exception:
         return None
@@ -518,17 +512,17 @@ def touch(path):
 
 def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
     '''Update the umad UI for UAMDM'''
-    umad.views['field.paragraph1'].setStringValue_(uamdm_p1.decode('utf8'))
-    umad.views['field.paragraph2'].setStringValue_(uamdm_p2.decode('utf8'))
-    umad.views['field.paragraph3'].setStringValue_(uamdm_p3.decode('utf8'))
+    umad.views['field.paragraph1'].setStringValue_(uamdm_p1)
+    umad.views['field.paragraph2'].setStringValue_(uamdm_p2)
+    umad.views['field.paragraph3'].setStringValue_(uamdm_p3)
     umad.views['image.nagscreen'].setImage_(uamdm_ss_nsimage)
     umad.views['button.sysprefs'].setHidden_(False)
     umad.views['field.manualenrollmenttext'].setHidden_(True)
     umad.views['image.nagscreen'].setHidden_(False)
     umad.views['field.depfailuretext'].setHidden_(False)
     umad.views['field.depfailuresubtext'].setHidden_(False)
-    umad.views['field.depfailuretext'].setStringValue_(sysprefs_h1_text.decode('utf8'))
-    umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text.decode('utf8'))
+    umad.views['field.depfailuretext'].setStringValue_(sysprefs_h1_text)
+    umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text)
 
 
 def main():
@@ -536,7 +530,7 @@ def main():
     opts, _ = get_parsed_options()
     global mdm_profile_identifier
     mdm_profile_identifier = opts.profileidentifier
-    main_umad_path = '/Library/Application Support/umad'
+    main_umad_path = '/Library/umad'
 
     mdm_profile_set = bool(
         mdm_profile_identifier != 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
@@ -544,7 +538,7 @@ def main():
         opts.manualenrollmenturl != 'https://apple.com')
     more_info_url_set = bool(opts.moreinfourl != 'https://google.com')
     if not mdm_profile_set:
-        print 'WARN - Did not set mdm profile identifier!'
+        print('WARN - Did not set mdm profile identifier!')
 
     # Check the OS and run our dep checks based on OS version
     mdm_status = check_mdm_status(False)
@@ -560,7 +554,7 @@ def main():
     # If we get here, device is not MDM enrolled or device is 10.13.4+
     # without UAMDM - check if umad is already running
     if umad_already_loaded():
-        print 'umad already loaded!'
+        print('umad already loaded!')
         exit(0)
 
     # We don't want to nag if device is UAMDM and DEP capable at the same time
@@ -571,7 +565,7 @@ def main():
         skip_nag_check = bool(
             get_os_version() >= LooseVersion('10.13.4') and mdm_enrolled and mdm_profile_set)
     else:
-        print 'WARN - cannot validate enrolled MDM is correct!'
+        print('WARN - cannot validate enrolled MDM is correct!')
         skip_nag_check = bool(
             get_os_version() >= LooseVersion('10.13.4') and mdm_enrolled)
 
@@ -602,7 +596,7 @@ def main():
     user_name, current_user_uid, _ = get_console_username_info()
 
     # Bail if we are not in a user session.
-    if user_name in (None, u'loginwindow', u'_mbsetupuser'):
+    if user_name in (None, 'loginwindow', '_mbsetupuser'):
         exit(0)
 
     umad_tmp_dir = '/private/var/tmp/umad'
@@ -610,7 +604,7 @@ def main():
         os.makedirs(umad_tmp_dir)
 
     nag_triggered = False
-    
+
     if skip_nag_check:
         # Trick logic into thinking device isn't DEP capable
         dep_capable = False
@@ -624,7 +618,7 @@ def main():
         # on DND even if it's not on
         if not original_dnd_status:
             do_not_disturb_set_value(True)
-            print 'Temporarily enabling DND for DEP activation record check'
+            print('Temporarily enabling DND for DEP activation record check')
             # Restart Notification Center to have CFPreferences take effect
             restart_notification_center()
 
@@ -633,12 +627,12 @@ def main():
         trigger_path = os.path.join(umad_tmp_dir, '.check_dep_record')
         touch(trigger_path)
         while os.path.exists(trigger_path):
-            print 'Waiting for DEP record check...'
+            print('Waiting for DEP record check...')
             time.sleep(1)
 
         if has_dep_activation_record(dep_plist):
             dep_capable = True
-            print 'Device DEP capable - True'
+            print('Device DEP capable - True')
             # We need to disable DND so the nag can show up
             do_not_disturb_set_value(False)
             # get the default User Notification Center
@@ -647,7 +641,7 @@ def main():
             user_nc.removeAllDeliveredNotifications()
         else:
             dep_capable = False
-            print 'Device DEP capable - False'
+            print('Device DEP capable - False')
 
         if dep_capable:
             # Trigger Nag event
@@ -655,7 +649,7 @@ def main():
             nag_trigger_path = os.path.join(umad_tmp_dir, '.trigger_nag')
             touch(nag_trigger_path)
             while os.path.exists(nag_trigger_path):
-                print 'Waiting for nag event...'
+                print('Waiting for nag event...')
                 time.sleep(1)
             restart_notification_center()
             # There is a bug in versions of macOS, where the nag will not show
@@ -667,8 +661,8 @@ def main():
                 '_SYSTEM_CENTER_:com.apple.mdmclient.cloudconfig'
             ]
             if get_os_version() >= LooseVersion('10.10'):
-                # Check for nag event every 10th second for 3 seconds
-                retries = 30
+                # Check for nag event every 10th second for 10 seconds
+                retries = 100
                 while not nag_triggered:
                     if get_os_version() >= LooseVersion('10.13'):
                         notifications = get_all_notifications_modern()
@@ -679,21 +673,21 @@ def main():
                         nag_triggered = bool(
                             last_notification in valid_notifications)
                         if nag_triggered:
-                            print 'Triggered nag event - True'
+                            print('Triggered nag event - True')
                             break
                     time.sleep(0.1)
                     retries -= 1
                     if retries == 0:
                         break
             if not nag_triggered:
-                print 'Triggered nag event - False'
+                print('Triggered nag event - False')
 
         if opts.honordndsettings or not dep_capable:
             # We will honor DND settings for non-DEP devices, unless the admin
             # explicitly wants this- Otherwise the nag will actually disappear
             # immediately
             if original_dnd_status:
-                print 'Re-enabling DND for user as it was previously set'
+                print('Re-enabling DND for user as it was previously set')
                 do_not_disturb_set_value(True)
                 # Restart Notification Center to have CFPreferences take effect
                 restart_notification_center()
@@ -730,20 +724,20 @@ def main():
     # Setup More Info button visibility
     if not more_info_url_set:
         umad.views['button.moreinfo'].setHidden_(True)
-        
+
     # Setup the UI fields
-    umad.views['field.titletext'].setStringValue_(opts.titletext.decode('utf8'))
-    umad.views['field.subtitletext'].setStringValue_(opts.subtitletext.decode('utf8'))
-    umad.views['field.duedatetext'].setStringValue_(opts.duedatetext.decode('utf8'))
-    umad.views['field.paragraph1'].setStringValue_(opts.paragraph1.decode('utf8'))
-    umad.views['field.paragraph2'].setStringValue_(opts.paragraph2.decode('utf8'))
-    umad.views['field.paragraph3'].setStringValue_(opts.paragraph3.decode('utf8'))
+    umad.views['field.titletext'].setStringValue_(opts.titletext)
+    umad.views['field.subtitletext'].setStringValue_(opts.subtitletext)
+    umad.views['field.duedatetext'].setStringValue_(opts.duedatetext)
+    umad.views['field.paragraph1'].setStringValue_(opts.paragraph1)
+    umad.views['field.paragraph2'].setStringValue_(opts.paragraph2)
+    umad.views['field.paragraph3'].setStringValue_(opts.paragraph3)
     umad.views['field.manualenrollmenttext'].setStringValue_(
-        opts.manualenrollmenttext.decode('utf8'))
+        opts.manualenrollmenttext)
     umad.views['field.depfailuretext'].setStringValue_(
-        opts.depfailuretext.decode('utf8'))
+        opts.depfailuretext)
     umad.views['field.depfailuresubtext'].setStringValue_(
-        opts.depfailuresubtext.decode('utf8'))
+        opts.depfailuresubtext)
 
     # Dynamically set username and serialnumber
     umad.views['field.username'].setStringValue_(str(user_name))
@@ -782,10 +776,10 @@ def main():
             umad.views['image.nagscreen'].setHidden_(True)
             umad.views['field.depfailuretext'].setHidden_(False)
             umad.views['field.depfailuretext'].setStringValue_(
-                manualenroll_h1_text.decode('utf8'))
+                manualenroll_h1_text)
             umad.views['field.depfailuresubtext'].setHidden_(False)
             umad.views['field.depfailuresubtext'].setStringValue_(
-                manualenroll_h2_text.decode('utf8'))
+                manualenroll_h2_text)
 
             # Bring back umad to the foreground, every 10 seconds
             timer = float(opts.timerelapsed)
@@ -867,7 +861,7 @@ def main():
         # If you didn't specify any defaults and the device is not DEP capable
         # it's really hard to have good data points
         if not dep_capable:
-            print 'Did not specify any defaults and device is not DEP capable!'
+            print('Did not specify any defaults and device is not DEP capable!')
 
         timer = float(opts.timerday3)
         date_diff_seconds = 1000000
@@ -875,14 +869,14 @@ def main():
     # Use cut off dates, but don't use the timer functionality
     if opts.notimer:
         umad.timer.invalidate()
-        print 'Timer invalidated!'
+        print('Timer invalidated!')
     else:
-        print 'Timer is set to %s' % str(timer)
+        print('Timer is set to %s' % str(timer))
 
     # Setup our mdm timer controller
     umad.mdm_timer_controller = mdmTimerController.alloc().init()
     mdm_timer = float(opts.timermdm)
-    print 'MDM Timer is set to %s' % str(mdm_timer)
+    print('MDM Timer is set to %s' % str(mdm_timer))
     umad.mdm_timer = (
         Foundation
         .NSTimer
@@ -901,19 +895,19 @@ def main():
         umad.views['image.nagscreen'].setHidden_(True)
         umad.views['field.depfailuretext'].setHidden_(False)
         umad.views['field.depfailuretext'].setStringValue_(
-            manualenroll_h1_text.decode('utf8'))
+            manualenroll_h1_text)
         umad.views['field.depfailuresubtext'].setHidden_(False)
         umad.views['field.depfailuresubtext'].setStringValue_(
-            manualenroll_h2_text.decode('utf8'))
+            manualenroll_h2_text)
     elif date_diff_seconds <= 0:
         umad.views['field.manualenrollmenttext'].setHidden_(True)
         umad.views['image.nagscreen'].setHidden_(False)
         umad.views['field.depfailuretext'].setHidden_(False)
         umad.views['field.depfailuretext'].setStringValue_(
-            opts.depfailuretext.decode('utf8'))
+            opts.depfailuretext)
         umad.views['field.depfailuresubtext'].setHidden_(False)
         umad.views['field.depfailuresubtext'].setStringValue_(
-            opts.depfailuresubtext.decode('utf8'))
+            opts.depfailuresubtext)
 
     # Do one final MDM check to instantly update the UI for UAMDM
     check_mdm_status(True)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/Library/cpe/frameworks/Python.framework/Versions/3.8/bin/python3
 import os
 import platform
 import plistlib
@@ -43,7 +43,8 @@ def has_dep_activation_record(plist_path):
         if err:
             return False
         try:
-            plist = plistlib.readPlist(plist_path)
+            with open(plist_path, "rb") as file:
+                plist = plistlib.load(file)
         except:  # noqa
             return False
         if not plist:
@@ -53,18 +54,20 @@ def has_dep_activation_record(plist_path):
     elif get_os_version() >= LooseVersion('10.11') and get_os_version() < LooseVersion('10.12'):
         # On 10.11 and lower, /usr/libexec/mdmclient dep nag returns the DEP
         # config data on stderr!
-        if 'ConfigurationURL' in err:
+        if b'ConfigurationURL' in err:
             # Make a fake plist with data :(
             plist = {}
             if get_os_version() >= LooseVersion('10.11'):
                 try:
-                    for line in err.split('\n'):
-                        if 'ConfigurationURL' in line:
+                    for line in err.split(b'\n'):
+                        if b'ConfigurationURL' in line:
                             # Since this is some stupid output, strip it all
-                            strip_line = line.strip(' ').strip(';').strip('"')
-                            strip_line_value = strip_line.split(' = "')[-1]
+                            strip_line = line.strip(b' ').strip(b';').strip(b'"')
+                            strip_line_value = strip_line.split(b' = "')[-1]
                             plist['ConfigurationURL'] = strip_line_value
-                            plistlib.writePlist(plist, plist_path)
+                            plist_file = open(plist_path, 'wb')
+                            plistlib.dump(pl, plist_file)
+                            plist_file.close()
                             return True
                 except:
                     return False
@@ -89,12 +92,12 @@ def has_dep_activation_record(plist_path):
 
 def main():
     dot_path = '/private/var/tmp/umad/.check_dep_record'
-    main_umad_path = '/Library/Application Support/umad'
+    main_umad_path = '/Library/umad'
     plist_path = os.path.join(main_umad_path, 'Resources/dep_record.plist')
     if has_dep_activation_record(plist_path):
-        print 'Has DEP activation record - True'
+        print('Has DEP activation record - True')
     else:
-        print 'Has DEP activation record - False'
+        print('Has DEP activation record - False')
 
     # Stop this from happening all the time
     if os.path.exists(dot_path):

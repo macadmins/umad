@@ -6,7 +6,7 @@
 	<string>com.erikng.umad.check_dep_record</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Library/Application Support/umad/Resources/umad_check_dep_record</string>
+		<string>/Library/umad/Resources/umad_check_dep_record</string>
 	</array>
 	<key>KeepAlive</key>
   <dict>

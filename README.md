@@ -4,6 +4,39 @@
 [A]pproval
 [D]ialog
 
+## Embedded Python
+As of v2.0, UMAD now uses its own embedded python (currently v3.8). This is due to Apple's upcoming removal of Python2.
+
+`FoundationPlist` has been replaced by Python 3's version of `plistlib`
+
+Nibbler has been updated to support python 3.
+
+### Building embedded python framework
+
+To reduce the size of the git repository, you **must** create your own Python. To do this, simply run the `./build_python_framework` script within the repository.
+
+This process was tested on Catalina only.
+
+```
+./build_python_framework
+
+Cloning relocatable-python tool from github...
+Cloning into '/tmp/relocatable-python-git'...
+remote: Enumerating objects: 28, done.
+remote: Counting objects: 100% (28/28), done.
+remote: Compressing objects: 100% (19/19), done.
+remote: Total 78 (delta 12), reused 19 (delta 9), pack-reused 50
+Unpacking objects: 100% (78/78), done.
+Downloading https://www.python.org/ftp/python/3.8.0/python-3.8.0-macosx10.9.pkg...
+
+...
+
+Done!
+Customized, relocatable framework is at /Library/umad/Python.framework
+Moving Python.framework to umad munki-pkg payload folder
+Taking ownership of the file to not break git
+```
+
 ## Purpose
 A Professional Tool to help users with getting pre-existing devices enrolled into MDM.
 
