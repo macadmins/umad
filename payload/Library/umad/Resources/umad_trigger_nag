@@ -1,15 +1,21 @@
-#!/usr/bin/python
+#!/Library/umad/frameworks/Python.framework/Versions/3.8/bin/python3
 # encoding: utf-8
 import os
 import platform
 import subprocess
 import time
+import Foundation
 from distutils.version import LooseVersion
 
 
 def get_os_version():
     '''Return OS version.'''
     return LooseVersion(platform.mac_ver()[0])
+
+
+def umadlog(text):
+    '''logger for umad'''
+    Foundation.NSLog('[UMAD] ' + text)
 
 
 def trigger_nag():
@@ -43,10 +49,10 @@ def main():
     '''main'''
     dot_path = '/private/var/tmp/umad/.trigger_nag'
     if trigger_nag():
-        print 'Triggered nag - True'
+        umadlog('Triggered nag - True')
     else:
         if get_os_version() <= LooseVersion('10.13'):
-            print 'Triggered nag - False'
+            umadlog('Triggered nag - False')
             # You cannot do two nag events within 10 seconds of each other on
             # at least 10.12 - wait 10 seconds and try one more time.
             # If you attempt to do this you will get the following error:
@@ -56,11 +62,11 @@ def main():
             # mdmclient[899:21947] Did NOT fetch configuration from Device Enrollment server: 34002 (Unable to communicate with the local Device Enrollment service. Please try again later.)
             time.sleep(10)
             if trigger_nag():
-                print 'Triggered nag backup - True'
+                umadlog('Triggered nag backup - True')
             else:
-                print 'Triggered nag backup - False'
+                umadlog('Triggered nag backup - False')
         else:
-            print 'Triggered nag - False'
+            umadlog('Triggered nag - False')
 
     # Stop this from happening all the time
     if os.path.exists(dot_path):
