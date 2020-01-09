@@ -1,20 +1,28 @@
 .	40755	0/0
 ./Library	40755	0/0
+./Library/LaunchAgents	40755	0/0
+./Library/LaunchAgents/com.erikng.umad.plist	100755	0/0	4397	3667671753
+./Library/LaunchDaemons	40755	0/0
+./Library/LaunchDaemons/com.erikng.umad.check_dep_record.plist	100755	0/0	559	2672307172
+./Library/LaunchDaemons/com.erikng.umad.trigger_nag.plist	100755	0/0	544	2929504266
 ./Library/umad	40755	0/0
 ./Library/umad/Logs	40755	0/0
+./Library/umad/Logs/.gitignore	100755	0/0	14	838015408
 ./Library/umad/Resources	40755	0/0
+./Library/umad/Resources/._company_logo.png	100755	0/0	0	0
+./Library/umad/Resources/._nag_ss.png	100755	0/0	0	0
+./Library/umad/Resources/._uamdm_ss.png	100755	0/0	0	0
+./Library/umad/Resources/._umad	100755	0/0	0	0
+./Library/umad/Resources/._umad.nib	40755	0/0	0	0
+./Library/umad/Resources/._umad_check_dep_record	100755	0/0	0	0
+./Library/umad/Resources/._umad_trigger_nag	100755	0/0	0	0
 ./Library/umad/Resources/company_logo.png	100755	0/0	16622	2197199182
 ./Library/umad/Resources/nag_ss.png	100755	0/0	31794	3177474883
-./Library/umad/Resources/umad	100755	0/0	29025	2236701796
-./Library/umad/Resources/umad.nib	40755	0/0
-./Library/umad/Resources/umad.nib/designable.nib	100755	0/0	24478	3050605350
-./Library/umad/Resources/umad.nib/keyedobjects.nib	100755	0/0	18282	1945778775
-./Library/umad/Resources/umad_check_dep_record	100755	0/0	1103	545638615
-./Library/umad/Resources/umad_trigger_nag	100755	0/0	928	2716832333
-./Library/umad/Resources/nibbler.py	100755	0/0	5035	1818762266
+./Library/umad/Resources/nibbler.py	100755	0/0	4552	2490287542
 ./Library/umad/Resources/uamdm_ss.png	100755	0/0	54940	1985954285
-./Library/LaunchAgents	40755	0/0
-./Library/LaunchAgents/com.erikng.umad.plist	100755	0/0	4250	946649556
-./Library/LaunchDaemons	40755	0/0
-./Library/LaunchDaemons/com.erikng.umad.check_dep_record.plist	100755	0/0	583	1854062333
-./Library/LaunchDaemons/com.erikng.umad.trigger_nag.plist	100755	0/0	568	226088309
+./Library/umad/Resources/umad	100755	0/0	37855	980732209
+./Library/umad/Resources/umad.nib	40755	0/0
+./Library/umad/Resources/umad.nib/designable.nib	100644	0/0	24452	4060103585
+./Library/umad/Resources/umad.nib/keyedobjects.nib	100644	0/0	18267	410556532
+./Library/umad/Resources/umad_check_dep_record	100755	0/0	4254	3041188598
+./Library/umad/Resources/umad_trigger_nag	100755	0/0	2958	1897768855
