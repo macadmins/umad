@@ -1,4 +1,4 @@
-#!/Library/umad/frameworks/Python.framework/Versions/3.8/bin/python3
+#!/Library/umad/Python.framework/Versions/3.8/bin/python3
 import os
 import platform
 import plistlib
