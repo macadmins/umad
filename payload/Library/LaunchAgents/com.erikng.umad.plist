@@ -90,7 +90,7 @@
 	<true/>
 	<key>StandardOutPath</key>
 	<string>/Library/umad/Logs/umad.log</string>
-	<key>StandardOutPath</key>
+	<key>StandardErrorPath</key>
 	<string>/Library/umad/Logs/umad.log</string>
 	<key>StartCalendarInterval</key>
 	<array>
