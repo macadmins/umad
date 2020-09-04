@@ -26,7 +26,7 @@ from Foundation import (CFPreferencesAppSynchronize, CFPreferencesCopyAppValue,
                         CFPreferencesCopyValue, CFPreferencesSetValue,
                         CFPreferencesSynchronize, NSBundle,
                         NSUserNotificationCenter, kCFPreferencesCurrentHost,
-                        kCFPreferencesCurrentUser)
+                        kCFPreferencesCurrentUser, NSHTTPURLResponse)
 from SystemConfiguration import SCDynamicStoreCopyConsoleUser
 
 from nibbler import *
@@ -50,6 +50,36 @@ class mdmTimerController(Foundation.NSObject):
     def checkMDMStatus_(self, timer_obj):
         '''check mdm status in a timer'''
         check_mdm_status(True)
+
+
+class Error(Exception):
+    """Base exception for fetch errors"""
+    pass
+
+
+class GurlError(Error):
+    """General exception for gurl errors"""
+    pass
+
+
+class ConnectionError(GurlError):
+    """General exception for gurl connection errors"""
+    pass
+
+
+class HTTPError(GurlError):
+    """General exception for http/https errors"""
+    pass
+
+
+class DownloadError(Error):
+    """Base exception for download errors"""
+    pass
+
+
+class FileCopyError(DownloadError):
+    """Download failed because of file copy errors."""
+    pass
 
 
 def button_moreinfo():
@@ -218,32 +248,72 @@ def do_not_disturb_set_value(dnd_on_or_off):
     CFPreferencesAppSynchronize(bundle_id)
 
 
-def downloadfile(options):
+def header_dict_from_list(array):
+    """Given a list of strings in http header format, return a dict.
+    A User-Agent header is added if none is present in the list.
+    If array is None, returns a dict with only the User-Agent header."""
+    header_dict = {}
+
+    if array is None:
+        return header_dict
+    for item in array:
+        (key, sep, value) = item.partition(':')
+        if sep and value:
+            header_dict[key.strip()] = value.strip()
+    return header_dict
+
+
+def downloadfile(url, destinationpath,
+                custom_headers=None, message=None,
+                resume=False, follow_redirects=False):
     '''download file with gurl'''
+
+    tempdownloadpath = destinationpath + '.download'
+    if os.path.exists(tempdownloadpath) and not resume:
+        os.remove(tempdownloadpath)
+
+    url_parse = urllib.parse.urlparse(url)
+    if url_parse.scheme == 'file':
+        # copy from source to temporary destination
+        try:
+            shutil.copy2(url_parse.path, tempdownloadpath)
+        except IOError as err:
+            raise FileCopyError('Copy IOError: %s' % str(err))
+
+        # rename temp destination to final destination
+        try:
+            os.rename(tempdownloadpath, destinationpath)
+        except OSError as err:
+            raise FileCopyError('Renaming %s: %s' % (destinationpath, str(err)))
+
+        return True
+
+    options = {'url': url,
+               'file': tempdownloadpath,
+               'follow_redirects': follow_redirects,
+               'can_resume': resume,
+               'additional_headers': header_dict_from_list(custom_headers)}
+
     connection = gurl.Gurl.alloc().initWithOptions_(options)
-    percent_complete = -1
-    bytes_received = 0
+    stored_percent_complete = -1
+    stored_bytes_received = 0
     connection.start()
     try:
-        filename = options['name']
-    except KeyError:
-        umadlog(('No \'name\' key defined in json for %s' %
-               pkgregex(options['file'])))
-        sys.exit(1)
-
-    try:
-        while not connection.isDone():
-            if connection.destination_path:
-                # only print progress info if we are writing to a file
-                if connection.percentComplete != -1:
-                    if connection.percentComplete != percent_complete:
-                        percent_complete = connection.percentComplete
-                        umadlog(('Downloading %s - Percent complete: %s ' % (
-                            filename, percent_complete)))
-                elif connection.bytesReceived != bytes_received:
-                    bytes_received = connection.bytesReceived
-                    umadlog(('Downloading %s - Bytes received: %s ' % (
-                        filename, bytes_received)))
+        while True:
+            connection_done = connection.isDone()
+            if (str(connection.status).startswith('2')
+                and connection.percentComplete != -1):
+                if connection.percentComplete != stored_percent_complete:
+                    # display percent done if it has changed
+                    stored_percent_complete = connection.percentComplete
+                    umadlog(('Downloading %s - Percent complete: %s ' % (
+                        url, stored_percent_complete)))
+            elif connection.bytesReceived != stored_bytes_received:
+                stored_bytes_received = connection.bytesReceived
+                umadlog(('Downloading %s - Bytes received: %s ' % (
+                    url, stored_percent_complete)))
+            if connection_done:
+                break
 
     except (KeyboardInterrupt, SystemExit):
         # safely kill the connection then fall through
@@ -252,19 +322,46 @@ def downloadfile(options):
         # Let us out! ... Safely! Unexpectedly quit dialogs are annoying ...
         connection.cancel()
         # Re-raise the error
-        raise
+        raise GurlError(-1, str(err))
 
     if connection.error is not None:
-        umadlog(('Error: %s %s ' % (str(connection.error.code()),
+        umadlog(('Download error: %s %s ' % (str(connection.error.code()),
                                   str(connection.error.localizedDescription()))))
         if connection.SSLerror:
-            umadlog('SSL error: %s ' % (str(connection.SSLerror)))
+            umadlog('SSL error detail: %s ' % (str(connection.SSLerror)))
+        
+        if os.path.exists(tempdownloadpath) and not resume:
+            os.remove(tempdownloadpath)
+        raise ConnectionError(connection.error.code(),
+                              connection.error.localizedDescription())
     if connection.response is not None:
         umadlog('Status: %s ' % (str(connection.status)))
         umadlog('Headers: %s ' % (str(connection.headers)))
     if connection.redirection != []:
         umadlog('Redirection: %s ' % (str(connection.redirection)))
+    
+    temp_download_exists = os.path.isfile(tempdownloadpath)
+    connection.headers['http_result_code'] = str(connection.status)
+    description = NSHTTPURLResponse.localizedStringForStatusCode_(
+        connection.status)
+    connection.headers['http_result_description'] = description
 
+    if str(connection.status).startswith('2') and temp_download_exists:
+        try:
+            os.rename(tempdownloadpath, destinationpath)
+        except OSError as err:
+            # Re-raise the error as a GurlError
+            raise GurlError(-1, str(err))
+        return connection.headers
+    else:
+        # there was an HTTP error of some sort; remove our temp download.
+        if os.path.exists(tempdownloadpath):
+            try:
+                os.unlink(tempdownloadpath)
+            except OSError:
+                pass
+        raise HTTPError(connection.status,
+                        connection.headers.get('http_result_description', ''))
 
 def get_all_notifications_legacy():
     '''Parse old notification db
@@ -366,7 +463,7 @@ def get_parsed_options():
     usage = '%prog [options]'
     options = optparse.OptionParser(usage=usage)
     options.add_option('--headers', help=('Optional: Auth headers'))
-    options.add_option('--jsonurl', help=('Required: URL to json file.'))
+    options.add_option('--configurl', help=('Required: URL to config folder'))
     return options.parse_args()
 
 
@@ -489,6 +586,58 @@ def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
     umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text)
 
 
+def get_config(base_url, config_name, headers=None):
+    if not base_url.endswith('/'):
+        base_url = base_url + '/'
+
+    config_url = (
+        base_url + urllib.parse.quote(config_name.encode('UTF-8')))
+    
+    umadlog('Config base URL is: %s' % base_url)
+    umadlog('Getting config file %s...' % config_name)
+
+    tmp_dir = tempfile.mkdtemp()
+    destinationpath = os.path.join(tmp_dir, config_name.lstrip('/'))
+
+    # Grab auth headers if they exist and update the json_data dict.
+    if headers:
+        headers = ['Authorization: %s' % headers]
+
+    umadlog(('Starting download: %s' % (urllib.parse.unquote(
+        config_url))))
+
+    downloadfile(config_url, destinationpath,
+        custom_headers=headers)
+
+    umadlog(('Download finished: %s' % (urllib.parse.unquote(
+        config_url))))
+
+    return destinationpath
+
+
+def get_primary_config(base_url, headers=None):
+    
+    json_path = ""
+
+    serial = get_serial()
+    config_name = serial + '.json'
+
+    umadlog('Requesting %s...' % config_name)
+
+    try:
+        json_path = get_config(base_url, config_name, headers)
+    except Exception:
+        pass
+
+    if not json_path:
+        # last resort - try for the default config file
+        config_name = 'default.json'
+        umadlog('Request failed. Requesting %s...' % config_name)
+        json_path = get_config(base_url, config_name, headers)
+    
+    return json_path
+    
+
 def main():
     '''Main thread'''
     opts, _ = get_parsed_options()
@@ -501,52 +650,21 @@ def main():
     cleanup = True
     if os.path.isfile(json_path):
         cleanup = False
-        json_raw = open(json_path).read()
     else:
-        tmp_dir = tempfile.mkdtemp()
-        tmp_json = os.path.join(tmp_dir, 'umad.json')
-        json_path = tmp_json
-        json_raw = None
-        if opts.jsonurl:
-            json_url = opts.jsonurl
-            # json data for gurl download
-            json_data = {
-                'url': json_url,
-                'file': json_path,
-                'name': 'umad.json'
-            }
-
-            # Grab auth headers if they exist and update the json_data dict.
-            if opts.headers:
-                headers = {'Authorization': opts.headers}
-                json_data.update({'additional_headers': headers})
-
-            url_parse = urllib.parse.urlparse(json_url)
-            if url_parse.scheme == 'file':
-                # File resources should be handled natively
-                try:
-                    json_raw = urllib.request.urlopen(json_url).read()
-                except urllib.error.URLError as err:
-                    umadlog(err)
-                    shutil.rmtree(tmp_dir)
-                    exit(1)
-            else:
-                # If the file doesn't exist, grab it and wait half a second to save.
-                while not os.path.isfile(json_path):
-                    umadlog(('Starting download: %s' % (urllib.parse.unquote(
-                        json_data['url']))))
-                    downloadfile(json_data)
-                    time.sleep(0.5)
-        else:
-            umadlog('umad JSON file not specified!')
-            shutil.rmtree(tmp_dir)
+        if not opts.configurl:
+            umadlog('umad config url not specified!')
+            exit(1)
+            
+        try:
+            json_path = get_primary_config(opts.configurl, opts.headers)
+        except Exception as err:
+            umadlog('Could not retrieve JSON config file.')
+            umadlog('Error: {0}'.format(err))
             exit(1)
 
-    # Load up file to grab all the items.
-    if json_raw:
-        umad_json = json.loads(json_raw)
-    else:
-        umad_json = json.loads(open(json_path).read())
+    # Load up file to grab all the items.  
+    json_raw = open(json_path).read()
+    umad_json = json.loads(json_raw)
 
     # Load umad preferences
     umad_prefs = umad_json['preferences']
@@ -633,7 +751,12 @@ def main():
     # cleanup the tmp stuff now
     if cleanup:
         umadlog('Cleaning up temporary files...')
-        shutil.rmtree(tmp_dir)
+        try:
+            tmp_dir = os.path.dirname(json_path)
+            if os.path.exists(tmp_dir):
+                shutil.rmtree(tmp_dir)
+        except Exception:
+            pass
 
     mdm_profile_set = bool(
         mdm_profile_identifier != 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')

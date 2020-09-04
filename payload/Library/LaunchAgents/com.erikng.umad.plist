@@ -11,7 +11,7 @@
 	<key>ProgramArguments</key>
 	<array>
 		<string>/Library/umad/Resources/umad</string>
-		<string>--jsonurl=https://fake.domain.com/path/to/config.json</string>
+		<string>--configurl=https://fake.domain.com.com/path/to/umad-config/</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
