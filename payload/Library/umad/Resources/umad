@@ -629,6 +629,11 @@ def main():
         'button.')
     uasspath = umad_prefs.get('ua_ss_path',
         'uamdm_ss.png')
+    
+    # cleanup the tmp stuff now
+    if cleanup:
+        umadlog('Cleaning up temporary files...')
+        shutil.rmtree(tmp_dir)
 
     mdm_profile_set = bool(
         mdm_profile_identifier != 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
