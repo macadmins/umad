@@ -78,17 +78,25 @@ The following operating system and versions have been tested with the embedded p
 ## Configuration File
 Essentially every component of the UI is customizable, all through a JSON configuration file. An [example file](/example_config.json) is available within the code repository.
 
-### Defined config file
-To define a configuration file, use the `jsonurl` script parameter.
+### Defined config repo
+To define a configuration repository, use the `configurl` script parameter.
 ```bash
---jsonurl=https://fake.domain.com/path/to/config.json
-```
-```bash
---jsonurl=file:///path/to/local/config.json
+--configurl=https://fake.domain.com/path/to/config/
 ```
 
-### Default config file
-If you prefer to deploy the configuration file to each client, it needs to be placed in the `Resources` directory and named `umad.json`. If this file exists, `jsonurl` does not need to be set.
+### Config resolution
+A config file matching the machine's serial number will be looked for first. So if the machine's serial number was `ABC123456` and the above config URL was set, umad would look for a config file at the following URL:
+
+`https://fake.domain.com/path/to/config/ABC123456.json`
+
+If this config file can't be found, umad will then fallback to the `default.json` config file...
+
+`https://fake.domain.com/path/to/config/default.json`
+
+This allows you to have different machines with different configurations. Useful when you want to stage the rollout of a particular configuration.
+
+### Local config file
+If you prefer to deploy the configuration file to each client locally, it needs to be placed in the `Resources` directory and named `umad.json`. If this file exists, `configurl` does not need to be set.
 
 ## Preferences
 A description of each preference is listed below.
