@@ -512,16 +512,6 @@ def has_dep_activation_record(plist_path):
         return True
 
 
-def pkgregex(pkgpath):
-    '''regular expression for pkg'''
-    try:
-        # capture everything after last / in the pkg filepath
-        pkgname = re.compile(r"[^/]+$").search(pkgpath).group(0)
-        return pkgname
-    except AttributeError as IndexError:
-        return pkgpath
-
-
 def restart_notification_center():
     '''Restart NotificationCenter by killing, letting LaunchD respawn.'''
     subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
