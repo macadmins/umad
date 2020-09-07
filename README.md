@@ -75,40 +75,51 @@ The following operating system and versions have been tested with the embedded p
 - 10.14
 - 10.15
 
-## Getting started
-To start, you can use the default settings in `/Library/LaunchAgent/com.anothertoolappleshouldhaveprovided.umad.plist`
+## Configuration File
+Essentially every component of the UI is customizable, all through a JSON configuration file. An [example file](/example_config.json) is available within the code repository.
 
-Essentially every component of the UI is customizable, using the above LaunchAgent.  
-* Create your .pkg with munki-pkg and install on your target workstation.
-* Open terminal.
-<i>example</i>
+### Defined config repo
+To define a configuration repository, use the `configurl` script parameter.
+```bash
+--configurl=https://fake.domain.com/path/to/config/
+```
 
-`/Library/Application Support/umad/Resources/umad --cutoffdate 2018-9-7-17:00
-`
-<i>sets the cutoff date to September 7th at 5pm</i>
+### Config resolution
+A config file matching the machine's serial number will be looked for first. So if the machine's serial number was `ABC123456` and the above config URL was set, umad would look for a config file at the following URL:
+
+`https://fake.domain.com/path/to/config/ABC123456.json`
+
+If this config file can't be found, umad will then fallback to the `default.json` config file...
+
+`https://fake.domain.com/path/to/config/default.json`
+
+This allows you to have different machines with different configurations. Useful when you want to stage the rollout of a particular configuration.
+
+### Local config file
+If you prefer to deploy the configuration file to each client locally, it needs to be placed in the `Resources` directory and named `umad.json`. If this file exists, `configurl` does not need to be set.
+
+## Preferences
+A description of each preference is listed below.
 
 ### Cutoff date
 Cut off date in UTC.
 
-```xml
-<string>--cutoffdate</string>
-<string>2018-12-31-17:00</string>
+```json
+"cut_off_date": "2018-12-31-00:00"
 ```
 
 ### Cut off date warning
 This is the number, in days, of when to start the initial UI warning. When this set of days passes, the user will be required to hit an "I Understand" button, followed by the "Close" button to exit out of the UI.
 
-```xml
-<string>--cutoffdatewarning</string>
-<string>14</string>
+```json
+"cut_off_date_warning": 14
 ```
 
 ### Due date text
 This is the bolded portion of the UI towards the top under the ["titletext".](#title-text)
 
-```xml
-<string>--duedatetext</string>
-<string>MDM Enrollment is required by 12/31/2018 (No Restart Required)</string>
+```json
+"due_date_text": "MDM Enrollment is required by 12/31/2018 (No Restart Required)"
 ```
 
 ### DEP failure text
@@ -116,9 +127,8 @@ If a user has a DEP capable device, but they are passed the enrollment window, t
 
 This is the first set of text above the enrollment button.
 
-```xml
-<string>--depfailuretext</string>
-<string>Not getting this notification?</string>
+```json
+"dep_failure_text": "Not getting this notification?"
 ```
 
 ### DEP failure subtext
@@ -126,16 +136,15 @@ If a user has a DEP capable device, but they are past the enrollment window, the
 
 This is the second set of text above the enrollment button.
 
-```xml
-<string>--depfailuresubtext</string>
-<string>You can also enroll manually below:</string>
+```json
+"dep_failure_subtext": "You can also enroll manually below:"
 ```
 
 ### Enable enrollment button
 Always show the manual enrollment button, DEP or not.
 
-```xml
-<string>--enableenrollmentbutton</string>
+```json
+"enable_enrollment_button": true
 ```
 
 ### Honor DND settings
@@ -145,17 +154,16 @@ If the admin wants to honor DoNotDisturb for DEP devices, use this feature.
 
 Non-DEP devices will honor the users DND settings
 
-```xml
-<string>--honordndsettings</string>
+```json
+"honor_dnd_settings": true
 ```
 
 ### Logo path
 You can replace the included company_logo.png with your own company_logo.png or you can configure a custom Path
 with the following string:
 
-```xml
-<string>--logopath</string>
-<string>/Some/Custom/Path/company_logo.png</string>
+```json
+"logo_path": "/Some/Custom/Path/company_logo.png"
 ```
 
 ### Manual enrollment text
@@ -164,9 +172,8 @@ If a user does not have a DEP capable device, they will have the option to manua
 
 This is the bolded text that takes place of the DEP or UAMDM screenshot.
 
-```xml
-<string>--manualenrollmenttext</string>
-<string>Manual Enrollment Required</string>
+```json
+"manual_enrollment_text": "Manual Enrollment Required"
 ```
 
 ### Manual enrollment h1 text
@@ -175,9 +182,8 @@ If a user does not have a DEP capable device, they will have the option to manua
 
 This is the first set of text above the enrollment button.
 
-```xml
-<string>--manualenrollh1text</string>
-<string>Want this box to go away?</string>
+```json
+"manualenroll_h1_text": "Want this box to go away?"
 ```
 
 ### Manual enrollment h2 text
@@ -186,67 +192,59 @@ If a user does not have a DEP capable device, they will have the option to manua
 
 This is the second set of text above the enrollment button.
 
-```xml
-<string>--manualenrollh2text</string>
-<string>Click on the Manual Enrollment button below.</string>
+```json
+"manualenroll_h2_text": "Click on the Manual Enrollment button below."
 ```
 
 ### Manual enrollment URL
 Configure the Manual Enrollment button with a custom URL.
-```xml
-<string>--manualenrollmenturl</string>
-<string>https://apple.com</string>
+```json
+"enrollment_url": "https://apple.com"
 ```
 
 ### More info URL
 When you see the Manual Enrollment button, you can customize a URL directing the users to more information.
-```xml
-<string>--moreinfourl</string>
-<string>https://google.com</string>
+```json
+"more_info_url": "https://google.com"
 ```
 
 ### Nag screenshot path
 You can modify the LaunchAgent adding your custom path or just replace the included nag_ss.png with your own .png.
 (remember to name the file nag_ss.png if you are not using a custom path)
-```xml
-<string>--nagsspath</string>
-<string>/Some/Custom/Path/nag_ss.png</string>
+```json
+"nag_ss_path": "/Some/Custom/Path/nag_ss.png"
 ```
 
 ### No timer
 Use this setting if you <b>DO NOT</b> want to restore the umad GUI to the front of a user's window.
 
-```xml
-<string>--notimer</string>
+```json
+"no_timer": true
 ```
 
 ### Paragraph 1 text
 This is the text for the first paragraph. 160 character limit.
-```xml
-<string>--paragraph1</string>
-<string>If you do not enroll into MDM you will lose the ability to connect to Wi-Fi, VPN and Managed Software Center.</string>
+```json
+"paragraph1": "If you do not enroll into MDM you will lose the ability to connect to Wi-Fi, VPN and Managed Software Center."
 ```
 
 ### Paragraph 2 text
 This is the text for the second paragraph. 160 character limit.
-```xml
-<string>--paragraph2</string>
-<string>To enroll, just look for the below notification, and click Details. Once prompted, log in with your username and password.</string>
+```json
+"paragraph2": "To enroll, just look for the below notification, and click Details. Once prompted, log in with your username and password."
 ```
 
 ### Paragraph 2 text
 This is the text for the third paragraph. 160 character limit.
-```xml
-<string>--paragraph3</string>
-<string>To enroll, just look for the below notification, and click Details. Once prompted, log in with your OneLogin username and password.</string>
+```json
+"paragraph3": "To enroll, just look for the below notification, and click Details. Once prompted, log in with your OneLogin username and password."
 ```
 
 ### Profile identifier
 This is the profile identifier for < 10.13 machines to check for enrollment. Should you not set this value, umad will attempt to look for a profile installed on the machine with the _PayloadType_ of `com.apple.mdm`
 
-```xml
-<string>--profileidentifier</string>
-<string>B68ABF1E-70E2-43B0-8300-AE65F9AFA330</string>
+```json
+"profile_identifier": "B68ABF1E-70E2-43B0-8300-AE65F9AFA330"
 ```
 
 To get this value, run the following command on a computer with your MDM profile installed: `profiles -C -o stdout-xml`
@@ -278,52 +276,46 @@ Some examples:
 
 ### Sub-title text
 This is the text right under the main title.
-```xml
-<string>--subtitletext</string>
-<string>A friendly reminder from your local IT team</string>
+```json
+"subtitle_text": "A friendly reminder from your local IT team"
 ```
 
 ### System Preferences H1 text
 Should the user have a 10.13.4+ device that is not User Approved MDM, they will be notified that they need to approve the MDM.
 
 This is the first set of text above the system preferences button.
-```xml
-<string>--sysprefsh1text</string>
-<string>Want this box to go away?</string>
+```json
+"sysprefs_h1_text": "Want this box to go away?"
 ```
 
 ### System Preferences H2 text
 Should the user have a 10.13.4+ device that is not User Approved MDM, they will be notified that they need to approve the MDM.
 
 This is the second set of text above the system preferences button.
-```xml
-<string>--sysprefsh2text</string>
-<string>Open System Preferences and approve Device Management.</string>
+```json
+"sysprefs_h2_text": "Open System Preferences and approve Device Management."
 ```
 
 ### Title text
 This is the main, bolded text at the very top.
-```xml
-<string>--titletext</string>
-<string>MDM Enrollment</string>
+```json
+"title_text": "MDM Enrollment"
 ```
 
 ### Timer Day 1
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
 When the MDM cutoff date is one day or less, this timer becomes active.
-```xml
-<string>--timerday1</string>
-<string>600</string>
+```json
+"timer_day1": 600
 ```
 
 ### Timer Day 3
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
 When the MDM cutoff date is three days or less from current date.
-```xml
-<string>--timerday3</string>
-<string>7200</string>
+```json
+"timer_day3": 7200
 ```
 
 ### Timer Elapsed
@@ -331,63 +323,55 @@ After the user interacts with umad GUI, (such as clicking the "I understand" but
 will display again.
 
 This will occur indefinitely until the MDM is enrolled.
-```xml
-<string>--timerelapsed</string>
-<string>10</string>
+```json
+"timer_elapsed": 10
 ```
 
 ### Timer Final
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
 This is when the MDM cutoff date is one hour or less
-```xml
-<string>--timerfinal</string>
-<string>60</string>
+```json
+"timer_final": 60
 ```
 
 ### Timer Initial
 The time, in seconds, to restore the umad GUI to the front of a user's window. This will occur indefinitely until the UI is closed or MDM is enrolled.
 
 When the MDM cutoff date is over three days.
-```xml
-<string>--timerinital</string>
-<string>14400</string>
+```json
+"timer_initial": 14400
 ```
 
 ### Timer MDM
 The time, in seconds, to check if the device is enrolled into MDM.
 
-```xml
-<string>--timermdm</string>
-<string>5</string>
+```json
+"timer_mdm": 5
 ```
 
 ### User Approved MDM paragraph 1 text
 This is the text for the first paragraph on the user Approved MDM UI.
-```xml
-<string>--uamdmparagraph1</string>
-<string>Thank you for enrolling your device into MDM. We sincerely appreciate you doing this in a timely manner.</string>
+```json
+"uamdm_paragraph1": "Thank you for enrolling your device into MDM. We sincerely appreciate you doing this in a timely manner."
 ```
 
 ### User Approved MDM paragraph 2 text
 This is the text for the second paragraph on the user Approved MDM UI.
-```xml
-<string>--uamdmparagraph2</string>
-<string>Unfortunately, your device has been detected as only partially enrolled into our system.</string>
+```json
+"uamdm_paragraph2": "Unfortunately, your device has been detected as only partially enrolled into our system."
 ```
 
 ### User Approved MDM paragraph 3 text
 This is the text for the third paragraph on the user Approved MDM UI.
-```xml
-<string>--uamdmparagraph3</string>
-<string>Please go to System Preferences -> Profiles, click on the Device Enrollment profile and click on the approve button.</string>
+```json
+"uamdm_paragraph3": "Please go to System Preferences -> Profiles, click on the Device Enrollment profile and click on the approve button."
 ```
 
 ### User Approved MDM screenshot path
 You can customize the uamdm screenshot path. Option 2, just replace the included uamdm_ss.png with your own .png.  Make sure you name the .png the same as the original and place it back into `umad/Resources/`  .
-```xml
-<string>--uasspath</string>
-<string>/Some/Custom/Path/uamdm_ss.png</string>
+```json
+"ua_ss_path": "/Some/Custom/Path/uamdm_ss.png"
 ```
 
 ## Tips, Tricks, and Troubleshooting

@@ -1,0 +1,50 @@
+{
+    "preferences": {
+        "cut_off_date": "2018-12-31-17:00",
+
+        "profile_identifier": "B68ABF1E-70E2-43B0-8300-AE65F9AFA330",
+
+        "logo_path": "/Some/Custom/Path/company_logo.png",
+        "nag_ss_path": "/Some/Custom/Path/nag_ss.png",
+        "ua_ss_path": "/Some/Custom/Path/uamdm_ss.png",
+
+        "title_text": "MDM Enrollment",
+        "subtitle_text": "A friendly reminder from your local IT team",
+        
+        "due_date_text": "MDM Enrollment is required (No Restart Required)",
+
+        "dep_failure_text": "Not getting this notification?",
+        "dep_failure_subtext": "You can also enroll manually below:",
+
+        "manual_enrollment_text": "Manual Enrollment Required",
+
+        "manualenroll_h1_text": "Want this box to go away?",
+        "manualenroll_h2_text": "Click on the Manual Enrollment button below.",
+
+        "paragraph1": "Enrollment into MDM is required to ensure that IT can protect your computer with basic security necessities like encryption and threat detection.",
+        "paragraph2": "If you do not enroll into MDM you may lose access to some items necessary for your day-to-day tasks.",
+        "paragraph3": "To enroll, just look for the below notification, and click Details. Once prompted, log in with your username and password.",
+        
+        "uamdm_paragraph1": "Thank you for enrolling your device into MDM. We sincerely appreciate you doing this in a timely manner.",
+        "uamdm_paragraph2": "Unfortunately, your device has been detected as only partially enrolled into our system.",
+        "uamdm_paragraph3": "Please go to System Preferences -> Profiles, click on the Device Enrollment profile and click on the approve button.",
+        
+        "sysprefs_h1_text": "Want this box to go away?",
+        "sysprefs_h2_text": "Open System Preferences and approve Device Management.",
+        
+        "enrollment_url": "https://apple.com",
+        "more_info_url": "https://google.com",
+        
+        "no_timer": true,
+        "enable_enrollment_button": true,
+        "honor_dnd_settings": true,
+        
+        "cut_off_date_warning": 3,
+        "timer_day1": 600,
+        "timer_day3": 7200,
+        "timer_elapsed": 10,
+        "timer_final": 60,
+        "timer_initial": 14400,
+        "timer_mdm": 5
+    }
+}

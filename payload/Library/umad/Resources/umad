@@ -2,16 +2,23 @@
 # -*- coding: utf-8 -*-
 '''umad - python wrapper for UAMDM/DEP enrollment and annoying the users to
 actually enroll.'''
+import json
 import optparse
 import os
 import platform
 import plistlib
+import re
+import shutil
 import sqlite3
 import subprocess
+import sys
+import tempfile
 import time
+import urllib.request, urllib.parse, urllib.error
 import webbrowser
 from datetime import datetime
 from distutils.version import LooseVersion
+from urllib.parse import urlparse, unquote
 import Foundation
 import objc
 from AppKit import NSApplication, NSImage
@@ -19,10 +26,11 @@ from Foundation import (CFPreferencesAppSynchronize, CFPreferencesCopyAppValue,
                         CFPreferencesCopyValue, CFPreferencesSetValue,
                         CFPreferencesSynchronize, NSBundle,
                         NSUserNotificationCenter, kCFPreferencesCurrentHost,
-                        kCFPreferencesCurrentUser)
+                        kCFPreferencesCurrentUser, NSHTTPURLResponse)
 from SystemConfiguration import SCDynamicStoreCopyConsoleUser
 
 from nibbler import *
+import gurl
 
 
 class timerController(Foundation.NSObject):
@@ -42,6 +50,36 @@ class mdmTimerController(Foundation.NSObject):
     def checkMDMStatus_(self, timer_obj):
         '''check mdm status in a timer'''
         check_mdm_status(True)
+
+
+class Error(Exception):
+    """Base exception for fetch errors"""
+    pass
+
+
+class GurlError(Error):
+    """General exception for gurl errors"""
+    pass
+
+
+class ConnectionError(GurlError):
+    """General exception for gurl connection errors"""
+    pass
+
+
+class HTTPError(GurlError):
+    """General exception for http/https errors"""
+    pass
+
+
+class DownloadError(Error):
+    """Base exception for download errors"""
+    pass
+
+
+class FileCopyError(DownloadError):
+    """Download failed because of file copy errors."""
+    pass
 
 
 def button_moreinfo():
@@ -210,6 +248,121 @@ def do_not_disturb_set_value(dnd_on_or_off):
     CFPreferencesAppSynchronize(bundle_id)
 
 
+def header_dict_from_list(array):
+    """Given a list of strings in http header format, return a dict.
+    A User-Agent header is added if none is present in the list.
+    If array is None, returns a dict with only the User-Agent header."""
+    header_dict = {}
+
+    if array is None:
+        return header_dict
+    for item in array:
+        (key, sep, value) = item.partition(':')
+        if sep and value:
+            header_dict[key.strip()] = value.strip()
+    return header_dict
+
+
+def downloadfile(url, destinationpath,
+                custom_headers=None, message=None,
+                resume=False, follow_redirects=False):
+    '''download file with gurl'''
+
+    tempdownloadpath = destinationpath + '.download'
+    if os.path.exists(tempdownloadpath) and not resume:
+        os.remove(tempdownloadpath)
+
+    url_parse = urllib.parse.urlparse(url)
+    if url_parse.scheme == 'file':
+        # copy from source to temporary destination
+        try:
+            shutil.copy2(url_parse.path, tempdownloadpath)
+        except IOError as err:
+            raise FileCopyError('Copy IOError: %s' % str(err))
+
+        # rename temp destination to final destination
+        try:
+            os.rename(tempdownloadpath, destinationpath)
+        except OSError as err:
+            raise FileCopyError('Renaming %s: %s' % (destinationpath, str(err)))
+
+        return True
+
+    options = {'url': url,
+               'file': tempdownloadpath,
+               'follow_redirects': follow_redirects,
+               'can_resume': resume,
+               'additional_headers': header_dict_from_list(custom_headers)}
+
+    connection = gurl.Gurl.alloc().initWithOptions_(options)
+    stored_percent_complete = -1
+    stored_bytes_received = 0
+    connection.start()
+    try:
+        while True:
+            connection_done = connection.isDone()
+            if (str(connection.status).startswith('2')
+                and connection.percentComplete != -1):
+                if connection.percentComplete != stored_percent_complete:
+                    # display percent done if it has changed
+                    stored_percent_complete = connection.percentComplete
+                    umadlog(('Downloading %s - Percent complete: %s ' % (
+                        url, stored_percent_complete)))
+            elif connection.bytesReceived != stored_bytes_received:
+                stored_bytes_received = connection.bytesReceived
+                umadlog(('Downloading %s - Bytes received: %s ' % (
+                    url, stored_percent_complete)))
+            if connection_done:
+                break
+
+    except (KeyboardInterrupt, SystemExit):
+        # safely kill the connection then fall through
+        connection.cancel()
+    except Exception:  # too general, I know
+        # Let us out! ... Safely! Unexpectedly quit dialogs are annoying ...
+        connection.cancel()
+        # Re-raise the error
+        raise GurlError(-1, str(err))
+
+    if connection.error is not None:
+        umadlog(('Download error: %s %s ' % (str(connection.error.code()),
+                                  str(connection.error.localizedDescription()))))
+        if connection.SSLerror:
+            umadlog('SSL error detail: %s ' % (str(connection.SSLerror)))
+        
+        if os.path.exists(tempdownloadpath) and not resume:
+            os.remove(tempdownloadpath)
+        raise ConnectionError(connection.error.code(),
+                              connection.error.localizedDescription())
+    if connection.response is not None:
+        umadlog('Status: %s ' % (str(connection.status)))
+        umadlog('Headers: %s ' % (str(connection.headers)))
+    if connection.redirection != []:
+        umadlog('Redirection: %s ' % (str(connection.redirection)))
+    
+    temp_download_exists = os.path.isfile(tempdownloadpath)
+    connection.headers['http_result_code'] = str(connection.status)
+    description = NSHTTPURLResponse.localizedStringForStatusCode_(
+        connection.status)
+    connection.headers['http_result_description'] = description
+
+    if str(connection.status).startswith('2') and temp_download_exists:
+        try:
+            os.rename(tempdownloadpath, destinationpath)
+        except OSError as err:
+            # Re-raise the error as a GurlError
+            raise GurlError(-1, str(err))
+        return connection.headers
+    else:
+        # there was an HTTP error of some sort; remove our temp download.
+        if os.path.exists(tempdownloadpath):
+            try:
+                os.unlink(tempdownloadpath)
+            except OSError:
+                pass
+        raise HTTPError(connection.status,
+                        connection.headers.get('http_result_description', ''))
+
 def get_all_notifications_legacy():
     '''Parse old notification db
     Largely inspired from https://github.com/ydkhatri/MacForensics'''
@@ -308,117 +461,10 @@ def get_parsed_options():
     '''Return the parsed options and args for this application.'''
     # Options
     usage = '%prog [options]'
-    o = optparse.OptionParser(usage=usage)
-    o.add_option('--cutoffdate',
-                 help=('Required: UTC cutoff date 2018-12-31-17:00.'))
-    o.add_option('--cutoffdatewarning',
-                 default=3,
-                 help=('Optional: Days from cutoff date to start warning.'))
-    o.add_option('--depfailuretext',
-                 default='Not getting this notification?',
-                 help=('Optional: DEP failure text.'))
-    o.add_option('--depfailuresubtext',
-                 default='You can also enroll manually below:',
-                 help=('Optional: DEP failure sub text.'))
-    o.add_option('--duedatetext',
-                 default='MDM Enrollment is required (No Restart Required)',
-                 help=('Required: Due date text.'))
-    o.add_option('--enableenrollmentbutton', default=False,
-                 help='Optional: Enable enrollment button for device',
-                 action='store_true')
-    o.add_option('--honordndsettings', default=False,
-                 help='Optional: Honor user DND settings (dont do this!)',
-                 action='store_true')
-    o.add_option('--logopath',
-                 default='company_logo.png',
-                 help=('Optional: Path to company logo.'))
-    o.add_option('--manualenrollmenturl',
-                 default='https://apple.com',
-                 help=('Required: Manual Enrollment URL.'))
-    o.add_option('--manualenrollmenttext',
-                 default='Manual Enrollment Required',
-                 help=('Optional: Manual enrollment text.'))
-    o.add_option('--manualenrollh1text',
-                 default='Want this box to go away?',
-                 help=('Optional: Manual enrollment text.'))
-    o.add_option('--manualenrollh2text',
-                 default='Click on the Manual Enrollment button below.',
-                 help=('Optional: Manual enrollment text.'))
-    o.add_option('--moreinfourl',
-                 default='https://google.com',
-                 help=('Required: More info URL.'))
-    o.add_option('--nagsspath',
-                 default='nag_ss.png',
-                 help=('Optional: Path to nag screenshot.'))
-    o.add_option('--notimer', default=False,
-                 help=('Optional: Do not use umad timer functionality.'),
-                 action='store_true')
-    o.add_option('--paragraph1',
-                 default='Enrollment into MDM is required to ensure that IT '
-                 'can protect your computer with basic security necessities '
-                 'like encryption and threat detection.',
-                 help=('Required: Paragraph 1 text.'))
-    o.add_option('--paragraph2',
-                 default='If you do not enroll into MDM you may lose access '
-                 'to some items necessary for your day-to-day tasks.',
-                 help=('Required: Paragraph 2 text.'))
-    o.add_option('--paragraph3',
-                 default='To enroll, just look for the below notification, '
-                 'and click Details. Once prompted, log in with your '
-                 'username and password.',
-                 help=('Required: Paragraph 3 text.'))
-    o.add_option('--profileidentifier',
-                 default='B68ABF1E-70E2-43B0-8300-AE65F9AFA330',
-                 help=('Required: MDM profile identifier.'))
-    o.add_option('--subtitletext',
-                 default='A friendly reminder from your local IT team',
-                 help=('Required: Sub-title text.'))
-    o.add_option('--sysprefsh1text',
-                 default='Want this box to go away?',
-                 help=('Required: Sys Prefs header 1 text.'))
-    o.add_option('--sysprefsh2text',
-                 default='Open System Preferences and approve Device '
-                 'Management.',
-                 help=('Required: Sys Prefs header 2 text.'))
-    o.add_option('--timerday1',
-                 default=600,
-                 help=('Optional: Time in seconds for 24-hour umad timer.'))
-    o.add_option('--timerday3',
-                 default=7200,
-                 help=('Optional: Time in seconds for 72-hour umad timer.'))
-    o.add_option('--timerelapsed',
-                 default=10,
-                 help=('Optional: Time in seconds for elapsed umad timer.'))
-    o.add_option('--timerfinal',
-                 default=60,
-                 help=('Optional: Time in seconds for 1-hour umad timer.'))
-    o.add_option('--timerinital',
-                 default=14400,
-                 help=('Optional: Time in seconds for initial umad timer.'))
-    o.add_option('--timermdm',
-                 default=5,
-                 help=('Optional: Time in seconds for mdm check timer.'))
-    o.add_option('--titletext',
-                 default='MDM Enrollment',
-                 help=('Optional: Title Text.'))
-    o.add_option('--uamdmparagraph1',
-                 default='Thank you for enrolling your device into MDM. We '
-                 'sincerely appreciate you doing this in a timely manner.',
-                 help=('Required: UAMDM paragraph 1 text.'))
-    o.add_option('--uamdmparagraph2',
-                 default='Unfortunately, your device has been detected as '
-                 'only partially enrolled into our system.',
-                 help=('Required: UAMDM paragraph 2 text.'))
-    o.add_option('--uamdmparagraph3',
-                 default='Please go to System Preferences -> Profiles, click '
-                 'on the Device Enrollment profile and click on the approve '
-                 'button.',
-                 help=('Required: UAMDM paragraph 3 text.'))
-    o.add_option('--uasspath',
-                 default='uamdm_ss.png',
-                 help=('Optional: Path to User Accepted MDM screenshot.'))
-
-    return o.parse_args()
+    options = optparse.OptionParser(usage=usage)
+    options.add_option('--headers', help=('Optional: Auth headers'))
+    options.add_option('--configurl', help=('Required: URL to config folder'))
+    return options.parse_args()
 
 
 def get_serial():
@@ -530,18 +576,183 @@ def update_umad_ui_uamdm(uamdm_p1, uamdm_p2, uamdm_p3):
     umad.views['field.depfailuresubtext'].setStringValue_(sysprefs_h2_text)
 
 
+def get_config(base_url, config_name, headers=None):
+    if not base_url.endswith('/'):
+        base_url = base_url + '/'
+
+    config_url = (
+        base_url + urllib.parse.quote(config_name.encode('UTF-8')))
+    
+    umadlog('Config base URL is: %s' % base_url)
+    umadlog('Getting config file %s...' % config_name)
+
+    tmp_dir = tempfile.mkdtemp()
+    destinationpath = os.path.join(tmp_dir, config_name.lstrip('/'))
+
+    # Grab auth headers if they exist and update the json_data dict.
+    if headers:
+        headers = ['Authorization: %s' % headers]
+
+    umadlog(('Starting download: %s' % (urllib.parse.unquote(
+        config_url))))
+
+    downloadfile(config_url, destinationpath,
+        custom_headers=headers)
+
+    umadlog(('Download finished: %s' % (urllib.parse.unquote(
+        config_url))))
+
+    return destinationpath
+
+
+def get_primary_config(base_url, headers=None):
+    
+    json_path = ""
+
+    serial = get_serial()
+    config_name = serial + '.json'
+
+    umadlog('Requesting %s...' % config_name)
+
+    try:
+        json_path = get_config(base_url, config_name, headers)
+    except Exception:
+        pass
+
+    if not json_path:
+        # last resort - try for the default config file
+        config_name = 'default.json'
+        umadlog('Request failed. Requesting %s...' % config_name)
+        json_path = get_config(base_url, config_name, headers)
+    
+    return json_path
+    
+
 def main():
     '''Main thread'''
     opts, _ = get_parsed_options()
-    global mdm_profile_identifier
-    mdm_profile_identifier = opts.profileidentifier
+
     main_umad_path = '/Library/umad'
+
+    # local json path - if it exists already, let's assume someone is bundling
+    # it with their package. Otherwise check for it and use gurl.
+    json_path = os.path.join(main_umad_path, 'Resources/umad.json')
+    cleanup = True
+    if os.path.isfile(json_path):
+        cleanup = False
+    else:
+        if not opts.configurl:
+            umadlog('umad config url not specified!')
+            exit(1)
+            
+        try:
+            json_path = get_primary_config(opts.configurl, opts.headers)
+        except Exception as err:
+            umadlog('Could not retrieve JSON config file.')
+            umadlog('Error: {0}'.format(err))
+            exit(1)
+
+    # Load up file to grab all the items.  
+    json_raw = open(json_path).read()
+    umad_json = json.loads(json_raw)
+
+    # Load umad preferences
+    umad_prefs = umad_json['preferences']
+
+    # Setup umad preferences and all defaults if not set
+    global mdm_profile_identifier
+    global manualenrollmenturl
+    global moreinfourl
+    global manualenrollmenttext
+    global uamdmparagraph1
+    global uamdmparagraph2
+    global uamdmparagraph3
+    global sysprefs_h1_text
+    global sysprefs_h2_text
+    global manualenroll_h1_text
+    global manualenroll_h2_text
+
+    cutoffdate = umad_prefs.get('cut_off_date', False)
+    cutoffdatewarning = umad_prefs.get('cut_off_date_warning', 3)
+    depfailuretext = umad_prefs.get('dep_failure_text',
+        'Not getting this notification?')
+    depfailuresubtext = umad_prefs.get('dep_failure_subtext',
+        'You can also enroll manually below:')
+    duedatetext = umad_prefs.get('due_date_text',
+        'MDM Enrollment is required (No Restart Required)')
+    enableenrollmentbutton = umad_prefs.get('enable_enrollment_button', False)
+    honordndsettings = umad_prefs.get('honor_dnd_settings', False)
+    logopath = umad_prefs.get('logo_path',
+        'company_logo.png')
+    manualenrollmenturl = umad_prefs.get('enrollment_url',
+        'https://apple.com')
+    manualenrollmenttext = umad_prefs.get('manual_enrollment_text',
+        'Manual Enrollment Required')
+    manualenroll_h1_text = umad_prefs.get('manualenroll_h1_text',
+        'Want this box to go away?')
+    manualenroll_h2_text = umad_prefs.get('manualenroll_h2_text',
+        'Click on the Manual Enrollment button below.')
+    moreinfourl = umad_prefs.get('more_info_url',
+        'https://google.com')
+    nagsspath = umad_prefs.get('nag_ss_path',
+        'nag_ss.png')
+    notimer = umad_prefs.get('no_timer', False)
+    paragraph1 = umad_prefs.get('paragraph1',
+        'Enrollment into MDM is required to ensure that IT '
+        'can protect your computer with basic security necessities '
+        'like encryption and threat detection.')
+    paragraph2 = umad_prefs.get('paragraph2',
+        'If you do not enroll into MDM you may lose access '
+        'to some items necessary for your day-to-day tasks.')
+    paragraph3 = umad_prefs.get('paragraph3',
+        'To enroll, just look for the below notification, '
+        'and click Details. Once prompted, log in with your '
+        'username and password.')
+    mdm_profile_identifier = umad_prefs.get('profile_identifier',
+        'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
+    subtitletext = umad_prefs.get('subtitle_text',
+        'A friendly reminder from your local IT team')
+    sysprefs_h1_text = umad_prefs.get('sysprefs_h1_text',
+        'Want this box to go away?')
+    sysprefs_h2_text = umad_prefs.get('sysprefs_h2_text',
+        'Open System Preferences and approve Device '
+        'Management.')
+    timerday1 = umad_prefs.get('timer_day1', 600)
+    timerday3 = umad_prefs.get('timer_day3', 7200)
+    timerelapsed = umad_prefs.get('timer_elapsed', 10)
+    timerfinal = umad_prefs.get('timer_final', 60)
+    timerinital = umad_prefs.get('timer_initial', 14400)
+    timermdm = umad_prefs.get('timer_mdm', 5)
+    titletext = umad_prefs.get('title_text',
+        'MDM Enrollment')
+    uamdmparagraph1 = umad_prefs.get('uamdm_paragraph1',
+        'Thank you for enrolling your device into MDM. We '
+        'sincerely appreciate you doing this in a timely manner.')
+    uamdmparagraph2 = umad_prefs.get('uamdm_paragraph2',
+        'Unfortunately, your device has been detected as '
+        'only partially enrolled into our system.')
+    uamdmparagraph3 = umad_prefs.get('uamdm_paragraph3',
+        'Please go to System Preferences -> Profiles, click '
+        'on the Device Enrollment profile and click on the approve '
+        'button.')
+    uasspath = umad_prefs.get('ua_ss_path',
+        'uamdm_ss.png')
+    
+    # cleanup the tmp stuff now
+    if cleanup:
+        umadlog('Cleaning up temporary files...')
+        try:
+            tmp_dir = os.path.dirname(json_path)
+            if os.path.exists(tmp_dir):
+                shutil.rmtree(tmp_dir)
+        except Exception:
+            pass
 
     mdm_profile_set = bool(
         mdm_profile_identifier != 'B68ABF1E-70E2-43B0-8300-AE65F9AFA330')
     manual_enrollment_url_set = bool(
-        opts.manualenrollmenturl != 'https://apple.com')
-    more_info_url_set = bool(opts.moreinfourl != 'https://google.com')
+        manualenrollmenturl != 'https://apple.com')
+    more_info_url_set = bool(moreinfourl != 'https://google.com')
     if not mdm_profile_set:
         umadlog('WARN - Did not set mdm profile identifier!')
 
@@ -576,26 +787,6 @@ def main():
 
     # Attempt to load our umad globals
     load_umad_globals()
-    global moreinfourl
-    moreinfourl = opts.moreinfourl
-    global manualenrollmenturl
-    manualenrollmenturl = opts.manualenrollmenturl
-    global manualenrollmenttext
-    manualenrollmenttext = opts.manualenrollmenttext
-    global uamdmparagraph1
-    uamdmparagraph1 = opts.uamdmparagraph1
-    global uamdmparagraph2
-    uamdmparagraph2 = opts.uamdmparagraph2
-    global uamdmparagraph3
-    uamdmparagraph3 = opts.uamdmparagraph3
-    global sysprefs_h1_text
-    sysprefs_h1_text = opts.sysprefsh1text
-    global sysprefs_h2_text
-    sysprefs_h2_text = opts.sysprefsh2text
-    global manualenroll_h1_text
-    manualenroll_h1_text = opts.manualenrollh1text
-    global manualenroll_h2_text
-    manualenroll_h2_text = opts.manualenrollh2text
 
     # Get the current username
     user_name, current_user_uid, _ = get_console_username_info()
@@ -687,7 +878,7 @@ def main():
             if not nag_triggered:
                 umadlog('Triggered nag event - False')
 
-        if opts.honordndsettings or not dep_capable:
+        if honordndsettings or not dep_capable:
             # We will honor DND settings for non-DEP devices, unless the admin
             # explicitly wants this- Otherwise the nag will actually disappear
             # immediately
@@ -699,7 +890,7 @@ def main():
 
     # Use the paths defined, or default to pngs in the same local path of
     # umad
-    for index, path in enumerate([opts.logopath, opts.nagsspath, opts.uasspath]):
+    for index, path in enumerate([logopath, nagsspath, uasspath]):
         if path in ('company_logo.png', 'nag_ss.png', 'uamdm_ss.png'):
             local_png_path = os.path.join(
                 umad_path, path).replace(' ', '%20')
@@ -731,26 +922,26 @@ def main():
         umad.views['button.moreinfo'].setHidden_(True)
 
     # Setup the UI fields
-    umad.views['field.titletext'].setStringValue_(opts.titletext)
-    umad.views['field.subtitletext'].setStringValue_(opts.subtitletext)
-    umad.views['field.duedatetext'].setStringValue_(opts.duedatetext)
-    umad.views['field.paragraph1'].setStringValue_(opts.paragraph1)
-    umad.views['field.paragraph2'].setStringValue_(opts.paragraph2)
-    umad.views['field.paragraph3'].setStringValue_(opts.paragraph3)
+    umad.views['field.titletext'].setStringValue_(titletext)
+    umad.views['field.subtitletext'].setStringValue_(subtitletext)
+    umad.views['field.duedatetext'].setStringValue_(duedatetext)
+    umad.views['field.paragraph1'].setStringValue_(paragraph1)
+    umad.views['field.paragraph2'].setStringValue_(paragraph2)
+    umad.views['field.paragraph3'].setStringValue_(paragraph3)
     umad.views['field.manualenrollmenttext'].setStringValue_(
-        opts.manualenrollmenttext)
+        manualenrollmenttext)
     umad.views['field.depfailuretext'].setStringValue_(
-        opts.depfailuretext)
+        depfailuretext)
     umad.views['field.depfailuresubtext'].setStringValue_(
-        opts.depfailuresubtext)
+        depfailuresubtext)
 
     # Dynamically set username and serialnumber
     umad.views['field.username'].setStringValue_(str(user_name))
     umad.views['field.serialnumber'].setStringValue_(str(get_serial()))
     umad.views['field.mdmenrolled'].setStringValue_('No')
-    if opts.cutoffdate:
+    if cutoffdate:
         todays_date = datetime.utcnow()
-        cutoff_date = datetime.strptime(opts.cutoffdate, '%Y-%m-%d-%H:%M')
+        cutoff_date = datetime.strptime(cutoffdate, '%Y-%m-%d-%H:%M')
         date_diff_seconds = (cutoff_date - todays_date).total_seconds()
         date_diff_days = int(round(date_diff_seconds / 86400))
 
@@ -762,7 +953,7 @@ def main():
                 'Past date!')
 
         cut_off_warn = bool(date_diff_seconds < int(
-            opts.cutoffdatewarning) * 86400)
+            cutoffdatewarning) * 86400)
 
         # Setup our timer controller
         umad.timer_controller = timerController.alloc().init()
@@ -787,7 +978,7 @@ def main():
                 manualenroll_h2_text)
 
             # Bring back umad to the foreground, every 10 seconds
-            timer = float(opts.timerelapsed)
+            timer = float(timerelapsed)
         elif date_diff_seconds <= 3600:
             # If the cutoff date is within one hour, get very agressive
 
@@ -798,7 +989,7 @@ def main():
 
             # Bring back umad to the foreground, every 60 seconds
             # (1 minute)
-            timer = float(opts.timerfinal)
+            timer = float(timerfinal)
         elif date_diff_seconds <= 86400:
             # If the cutoff date is within 86,400 seconds (24 hours), start
             # getting more agressive
@@ -810,7 +1001,7 @@ def main():
             # If the user doesn't close out of umad, we want it to
             # reappear - bring back umad to the foreground, every
             # 600 seconds (10 minutes)
-            timer = float(opts.timerday1)
+            timer = float(timerday1)
         elif cut_off_warn:
             # If the cutoff date is within 259,200 seconds (72 hours) or
             # whatever the admin set, start getting a bit more agressive
@@ -822,7 +1013,7 @@ def main():
             # If the user doesn't close out of umad, we want it to
             # reappear - bring back umad to the foreground, every
             # 7,200 seconds (2 hours)
-            timer = float(opts.timerday3)
+            timer = float(timerday3)
         else:
             # If the cutoff date is over 259,200 seconds (72 hours),
             # don't be that aggressive
@@ -834,7 +1025,7 @@ def main():
             # If the user doesn't close out of umad, we want it to
             # reappear - bring back umad to the foreground, every
             # 14,400 seconds (4 hours)
-            timer = float(opts.timerinital)
+            timer = float(timerinital)
 
         umad.timer = (
             Foundation
@@ -868,11 +1059,11 @@ def main():
         if not dep_capable:
             umadlog('Did not specify any defaults and device is not DEP capable!')
 
-        timer = float(opts.timerday3)
+        timer = float(timerday3)
         date_diff_seconds = 1000000
 
     # Use cut off dates, but don't use the timer functionality
-    if opts.notimer:
+    if notimer:
         umad.timer.invalidate()
         umadlog('Timer invalidated!')
     else:
@@ -880,7 +1071,7 @@ def main():
 
     # Setup our mdm timer controller
     umad.mdm_timer_controller = mdmTimerController.alloc().init()
-    mdm_timer = float(opts.timermdm)
+    mdm_timer = float(timermdm)
     umadlog('MDM Timer is set to %s' % str(mdm_timer))
     umad.mdm_timer = (
         Foundation
@@ -894,7 +1085,7 @@ def main():
     # If the device isn't dep capable, enable the manual enrollment button
     # Also if admin always wants the break glass option
     # Also enable if dep nag didn't actually pop-up
-    if (not dep_capable and mdm_profile_set) or opts.enableenrollmentbutton or not nag_triggered:
+    if (not dep_capable and mdm_profile_set) or enableenrollmentbutton or not nag_triggered:
         umad.views['button.manualenrollment'].setHidden_(False)
         umad.views['field.manualenrollmenttext'].setHidden_(False)
         umad.views['image.nagscreen'].setHidden_(True)
@@ -909,10 +1100,10 @@ def main():
         umad.views['image.nagscreen'].setHidden_(False)
         umad.views['field.depfailuretext'].setHidden_(False)
         umad.views['field.depfailuretext'].setStringValue_(
-            opts.depfailuretext)
+            depfailuretext)
         umad.views['field.depfailuresubtext'].setHidden_(False)
         umad.views['field.depfailuresubtext'].setStringValue_(
-            opts.depfailuresubtext)
+            depfailuresubtext)
 
     # Do one final MDM check to instantly update the UI for UAMDM
     check_mdm_status(True)
