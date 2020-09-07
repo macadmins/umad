@@ -25,8 +25,8 @@ from AppKit import NSApplication, NSImage
 from Foundation import (CFPreferencesAppSynchronize, CFPreferencesCopyAppValue,
                         CFPreferencesCopyValue, CFPreferencesSetValue,
                         CFPreferencesSynchronize, NSBundle,
-                        NSUserNotificationCenter, kCFPreferencesCurrentHost,
-                        kCFPreferencesCurrentUser, NSHTTPURLResponse)
+                        kCFPreferencesCurrentHost, kCFPreferencesCurrentUser,
+                        NSHTTPURLResponse)
 from SystemConfiguration import SCDynamicStoreCopyConsoleUser
 
 from nibbler import *
@@ -831,10 +831,6 @@ def main():
             umadlog('Device DEP capable - True')
             # We need to disable DND so the nag can show up
             do_not_disturb_set_value(False)
-            # get the default User Notification Center
-            user_nc = NSUserNotificationCenter.defaultUserNotificationCenter()
-            # remove any delivered notifications
-            user_nc.removeAllDeliveredNotifications()
         else:
             dep_capable = False
             umadlog('Device DEP capable - False')
