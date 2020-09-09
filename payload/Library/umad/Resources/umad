@@ -26,7 +26,7 @@ from Foundation import (CFPreferencesAppSynchronize, CFPreferencesCopyAppValue,
                         CFPreferencesCopyValue, CFPreferencesSetValue,
                         CFPreferencesSynchronize, NSBundle,
                         kCFPreferencesCurrentHost, kCFPreferencesCurrentUser,
-                        NSHTTPURLResponse)
+                        NSHTTPURLResponse, NSDistributedNotificationCenter)
 from SystemConfiguration import SCDynamicStoreCopyConsoleUser
 
 from nibbler import *
@@ -227,24 +227,32 @@ def do_not_disturb_isset():
     '''Check if DND is set'''
     bundle_id = 'com.apple.notificationcenterui'
     do_not_disturb = CFPreferencesCopyAppValue('doNotDisturb', bundle_id)
+    dndStart = CFPreferencesCopyAppValue('dndStart', bundle_id)
+    dndEnd = CFPreferencesCopyAppValue('dndEnd', bundle_id)
     do_not_disturb_by_host = CFPreferencesCopyValue('doNotDisturb', bundle_id,
                                                     kCFPreferencesCurrentUser,
                                                     kCFPreferencesCurrentHost)
-    return bool(do_not_disturb or do_not_disturb_by_host)
+    return bool(do_not_disturb or do_not_disturb_by_host), dndStart, dndEnd
 
 
-def do_not_disturb_set_value(dnd_on_or_off):
+def do_not_disturb_set_value(dnd_on_or_off, dnd_start, dnd_end):
     '''Enable or Disable DND'''
     bundle_id = 'com.apple.notificationcenterui'
+
+    CFPreferencesSetValue('dndStart', dnd_start, bundle_id,
+                        kCFPreferencesCurrentUser,
+                        kCFPreferencesCurrentHost)
+    CFPreferencesSetValue('dndEnd', dnd_end, bundle_id,
+                        kCFPreferencesCurrentUser,
+                        kCFPreferencesCurrentHost)
+
     CFPreferencesSetValue('doNotDisturb', dnd_on_or_off, bundle_id,
                           kCFPreferencesCurrentUser,
                           kCFPreferencesCurrentHost)
+    
     CFPreferencesSynchronize(bundle_id,
                              kCFPreferencesCurrentUser,
                              kCFPreferencesCurrentHost)
-    CFPreferencesSetValue('doNotDisturb', dnd_on_or_off, bundle_id,
-                          kCFPreferencesCurrentUser,
-                          kCFPreferencesCurrentHost)
     CFPreferencesAppSynchronize(bundle_id)
 
 
@@ -514,6 +522,9 @@ def has_dep_activation_record(plist_path):
 
 def restart_notification_center():
     '''Restart NotificationCenter by killing, letting LaunchD respawn.'''
+    default_center = NSDistributedNotificationCenter.defaultCenter()
+    default_center.postNotificationName_object_userInfo_deliverImmediately_(
+        'com.apple.notificationcenterui.dndprefs_changed', None, None, True)
     subprocess.call(['/usr/bin/killall', 'NotificationCenter'])
 
 
@@ -806,14 +817,19 @@ def main():
         dep_capable = False
     else:
         # Check DND status
-        original_dnd_status = do_not_disturb_isset()
+        dnd_status = do_not_disturb_isset()
+
+        original_dnd_status = dnd_status[0]
+        original_dnd_start = dnd_status[1]
+        original_dnd_end = dnd_status[2]
+
         dep_plist = os.path.join(main_umad_path, 'Resources/dep_record.plist')
         # Because of a wonderful bug, when we check the dep activation record,
         # if the user hasn't enrolled, this will actually nag them, resulting
         # in two nags when our actual tool runs - work around this by turning
         # on DND even if it's not on
         if not original_dnd_status:
-            do_not_disturb_set_value(True)
+            do_not_disturb_set_value(True, 0, 1440)
             umadlog('Temporarily enabling DND for DEP activation record check')
             # Restart Notification Center to have CFPreferences take effect
             restart_notification_center()
@@ -829,8 +845,6 @@ def main():
         if has_dep_activation_record(dep_plist):
             dep_capable = True
             umadlog('Device DEP capable - True')
-            # We need to disable DND so the nag can show up
-            do_not_disturb_set_value(False)
         else:
             dep_capable = False
             umadlog('Device DEP capable - False')
@@ -880,9 +894,13 @@ def main():
             # immediately
             if original_dnd_status:
                 umadlog('Re-enabling DND for user as it was previously set')
-                do_not_disturb_set_value(True)
-                # Restart Notification Center to have CFPreferences take effect
-                restart_notification_center()
+                do_not_disturb_set_value(True, original_dnd_start, original_dnd_end)
+        else:
+            # We need to disable DND so the nag can show up
+            do_not_disturb_set_value(False, None, None)
+        
+        # Restart Notification Center to have CFPreferences take effect
+        restart_notification_center()
 
     # Use the paths defined, or default to pngs in the same local path of
     # umad
