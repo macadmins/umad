@@ -27,7 +27,7 @@ base_umad_path='Library/umad/'
 # Load agent if installing to a running system
 if [[ $3 == "/" ]] ; then
   # Fail the install if the admin forgets to change their paths and they don't exist.
-  if [ ! -e "$3${launch_daemon_base_path}${launch_daemon_dep_plist_name}.plist" ] || "$3${launch_daemon_base_path}${launch_daemon_nag_plist_name}.plist" ] || [ ! -e "$3${launch_agent_base_path}${launch_agent_plist_name}.plist" ]; then
+  if [ ! -e "$3${launch_daemon_base_path}${launch_daemon_dep_plist_name}.plist" ] || [ ! -e "$3${launch_daemon_base_path}${launch_daemon_nag_plist_name}.plist" ] || [ ! -e "$3${launch_agent_base_path}${launch_agent_plist_name}.plist" ]; then
     echo "LaunchAgent or Daemons missing, exiting"
     exit 1
   fi
