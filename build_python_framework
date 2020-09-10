@@ -6,12 +6,20 @@
 # IMPORTANT
 # Run this with your current directory being the path where this script is located
 
-TOOLSDIR=$(dirname $0)
-REQUIREMENTS="${TOOLSDIR}/py3_requirements.txt"
+UMADROOT=$(dirname $0)
+REQUIREMENTS="${UMADROOT}/py3_requirements.txt"
 PYTHON_VERSION=3.8.0
-PYTHONTOOLDIR="/tmp/relocatable-python-git"
-CONSOLEUSER=$(/usr/bin/stat -f "%Su" /dev/console)
-FRAMEWORKDIR="/Library/umad"
+FRAMEWORKDIR="${UMADROOT}/payload/Library/umad"
+
+while getopts "S:" option
+do
+    case $option in
+        "S" )
+            APPSIGNINGCERT="$OPTARG"
+            ;;
+    esac
+done
+shift $(($OPTIND - 1))
 
 # Sanity checks.
 GIT=$(which git)
@@ -22,24 +30,19 @@ if [ "${WHICH_GIT_RESULT}" != "0" ]; then
     echo "    https://git-scm.com/download/mac"
     exit 1
 fi
+if [ ! -d "${UMADROOT}/payload" ]; then
+    echo "Does not look like you are running this script from a umad git repo." 1>&2
+    exit 1
+fi
 if [ ! -f "${REQUIREMENTS}" ]; then
     echo "Missing requirements file at ${REQUIREMENTS}." 1>&2
     exit 1
 fi
 
-# Create CPE framework path if not present
-if [ ! -d "${FRAMEWORKDIR}" ]; then
-    /usr/bin/sudo /bin/mkdir -p "${FRAMEWORKDIR}"
-fi
-
-# remove existing library Python.framework if present
-if [ -d "${FRAMEWORKDIR}/Python.framework" ]; then
-    /usr/bin/sudo /bin/rm -rf "${FRAMEWORKDIR}/Python.framework"
-fi
-
 # clone our relocatable-python tool
+PYTHONTOOLDIR="/tmp/relocatable-python-git"
 if [ -d "${PYTHONTOOLDIR}" ]; then
-    /usr/bin/sudo /bin/rm -rf "${PYTHONTOOLDIR}"
+    /bin/rm -rf "${PYTHONTOOLDIR}"
 fi
 echo "Cloning relocatable-python tool from github..."
 git clone https://github.com/gregneagle/relocatable-python.git "${PYTHONTOOLDIR}"
@@ -50,20 +53,33 @@ if [ "${CLONE_RESULT}" != "0" ]; then
 fi
 
 # remove existing munki-pkg Python.framework if present
-if [ -d "$TOOLSDIR/payload/${FRAMEWORKDIR}/Python.framework" ]; then
-    /bin/rm -rf "$TOOLSDIR/payload/${FRAMEWORKDIR}/Python.framework"
+if [ -d "${FRAMEWORKDIR}/Python.framework" ]; then
+    /bin/rm -rf "${FRAMEWORKDIR}/Python.framework"
 fi
 
 # build the framework
-/usr/bin/sudo "${PYTHONTOOLDIR}/make_relocatable_python_framework.py" \
+"${PYTHONTOOLDIR}/make_relocatable_python_framework.py" \
     --python-version "${PYTHON_VERSION}" \
     --pip-requirements "${REQUIREMENTS}" \
     --destination "${FRAMEWORKDIR}"
 
-# move the framework
-echo "Moving Python.framework to umad munki-pkg payload folder"
-/usr/bin/sudo /bin/mv "${FRAMEWORKDIR}/Python.framework" "$TOOLSDIR/payload/${FRAMEWORKDIR}"
+if [ "${APPSIGNINGCERT}" != "" ]; then
+    echo "Signing Python.framework..."
 
-# take ownership of the payload folder
-echo "Taking ownership of the file to not break git"
-/usr/bin/sudo /usr/sbin/chown -R ${CONSOLEUSER}:wheel "$TOOLSDIR/payload/${FRAMEWORKDIR}/Python.framework"
+    find ${FRAMEWORKDIR}/Python.framework/Versions/3.8/lib/ -type f -perm -u=x -exec codesign --deep --verbose --options runtime --timestamp -s "${APPSIGNINGCERT}" {} \;
+    find ${FRAMEWORKDIR}/Python.framework/Versions/3.8/bin/ -type f -perm -u=x -exec codesign --deep --verbose --options runtime --timestamp -s "${APPSIGNINGCERT}" {} \;
+
+    find ${FRAMEWORKDIR}/Python.framework/Versions/3.8/lib/ -type f -name "*dylib" -exec codesign --deep --verbose --options runtime --timestamp -s "${APPSIGNINGCERT}" {} \;
+
+    /usr/libexec/PlistBuddy -c "Add :com.apple.security.cs.allow-unsigned-executable-memory bool true" ${FRAMEWORKDIR}/entitlements.plist
+
+    codesign --force --entitlements ${FRAMEWORKDIR}/entitlements.plist --deep --verbose --options runtime --timestamp -s "${APPSIGNINGCERT}" ${FRAMEWORKDIR}/Python.framework/Versions/3.8/Resources/Python.app/
+
+    codesign --force --entitlements ${FRAMEWORKDIR}/entitlements.plist --deep --verbose --options runtime --timestamp -s "${APPSIGNINGCERT}" ${FRAMEWORKDIR}/Python.framework/Versions/3.8/bin/python3.8
+    codesign --force --entitlements ${FRAMEWORKDIR}/entitlements.plist --deep --verbose --options runtime --timestamp -s "${APPSIGNINGCERT}" ${FRAMEWORKDIR}/Python.framework/Versions/3.8/bin/python3.8m
+    codesign --deep --verbose --options runtime --timestamp -s "${APPSIGNINGCERT}" ${FRAMEWORKDIR}/Python.framework
+
+    rm ${FRAMEWORKDIR}/entitlements.plist
+    
+    echo "Signing complete!"
+fi
