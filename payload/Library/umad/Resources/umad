@@ -332,6 +332,10 @@ def get_parsed_options():
     o.add_option('--logopath',
                  default='company_logo.png',
                  help=('Optional: Path to company logo.'))
+    o.add_option('--disablemanualenrollmentfordep', default=False,
+                 help='Optional: Disable the manual enrollment button for '
+                 'DEP devices',
+                 action='store_true')
     o.add_option('--manualenrollmenturl',
                  default='https://apple.com',
                  help=('Required: Manual Enrollment URL.'))
@@ -771,20 +775,22 @@ def main():
             # If the cutoff date is over, get stupidly aggressive
 
             # Disable all buttons so the user cannot exit out of the
-            # application, and have the manualenrollment button appear
+            # application.
             umad.views['button.ok'].setHidden_(True)
             umad.views['button.understand'].setHidden_(True)
 
             # Show the manual enrollment UI for emergency purposes
-            umad.views['button.manualenrollment'].setHidden_(False)
-            umad.views['field.manualenrollmenttext'].setHidden_(False)
+            # if allowed.
+            if not opts.disablemanualenrollmentfordep:
+                umad.views['button.manualenrollment'].setHidden_(False)
+                umad.views['field.manualenrollmenttext'].setHidden_(False)
+                umad.views['field.depfailuretext'].setHidden_(False)
+                umad.views['field.depfailuretext'].setStringValue_(
+                    manualenroll_h1_text)
+                umad.views['field.depfailuresubtext'].setHidden_(False)
+                umad.views['field.depfailuresubtext'].setStringValue_(
+                    manualenroll_h2_text)
             umad.views['image.nagscreen'].setHidden_(True)
-            umad.views['field.depfailuretext'].setHidden_(False)
-            umad.views['field.depfailuretext'].setStringValue_(
-                manualenroll_h1_text)
-            umad.views['field.depfailuresubtext'].setHidden_(False)
-            umad.views['field.depfailuresubtext'].setStringValue_(
-                manualenroll_h2_text)
 
             # Bring back umad to the foreground, every 10 seconds
             timer = float(opts.timerelapsed)
@@ -905,14 +911,16 @@ def main():
         umad.views['field.depfailuresubtext'].setStringValue_(
             manualenroll_h2_text)
     elif date_diff_seconds <= 0:
-        umad.views['field.manualenrollmenttext'].setHidden_(True)
         umad.views['image.nagscreen'].setHidden_(False)
-        umad.views['field.depfailuretext'].setHidden_(False)
-        umad.views['field.depfailuretext'].setStringValue_(
-            opts.depfailuretext)
-        umad.views['field.depfailuresubtext'].setHidden_(False)
-        umad.views['field.depfailuresubtext'].setStringValue_(
-            opts.depfailuresubtext)
+        umad.views['field.manualenrollmenttext'].setHidden_(True)
+
+        if not opts.disablemanualenrollmentfordep:
+            umad.views['field.depfailuretext'].setHidden_(False)
+            umad.views['field.depfailuretext'].setStringValue_(
+                opts.depfailuretext)
+            umad.views['field.depfailuresubtext'].setHidden_(False)
+            umad.views['field.depfailuresubtext'].setStringValue_(
+                opts.depfailuresubtext)
 
     # Do one final MDM check to instantly update the UI for UAMDM
     check_mdm_status(True)
