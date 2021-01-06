@@ -112,7 +112,7 @@ This is the bolded portion of the UI towards the top under the ["titletext".](#t
 ```
 
 ### DEP failure text
-If a user has a DEP capable device, but they are passed the enrollment window, they will have an option to manually enroll.
+If a user has a DEP capable device, but they are past the enrollment window, they will have an option to manually enroll.
 
 This is the first set of text above the enrollment button.
 
