@@ -332,6 +332,9 @@ def get_parsed_options():
     o.add_option('--logopath',
                  default='company_logo.png',
                  help=('Optional: Path to company logo.'))
+    o.add_option('--disablemanualenrollmentfordep', default=False,
+                 help='Optional: Disable the manual enrollment button for DEP devices',
+                 action='store_true')
     o.add_option('--manualenrollmenturl',
                  default='https://apple.com',
                  help=('Required: Manual Enrollment URL.'))
@@ -913,6 +916,14 @@ def main():
         umad.views['field.depfailuresubtext'].setHidden_(False)
         umad.views['field.depfailuresubtext'].setStringValue_(
             opts.depfailuresubtext)
+
+    # If the disablemanualenrollmentfordep option is set, never offer
+    # manual enrollment as an option for DEP capable devices.
+    if dep_capable and opts.disablemanualenrollmentfordep:
+        umad.views['button.manualenrollment'].setHidden_(True)
+        umad.views['field.manualenrollmenttext'].setHidden_(True)
+        umad.views['field.depfailuretext'].setHidden_(True)
+        umad.views['field.depfailuresubtext'].setHidden_(True)
 
     # Do one final MDM check to instantly update the UI for UAMDM
     check_mdm_status(True)
