@@ -4,8 +4,41 @@
 [A]pproval
 [D]ialog
 
+## Embedded Python
+As of v2.0, UMAD now uses its own embedded python (currently v3.8). This is due to Apple's upcoming removal of Python2.
+
+`FoundationPlist` has been replaced by Python 3's version of `plistlib`
+
+Nibbler has been updated to support python 3.
+
+### Building embedded python framework
+
+To reduce the size of the git repository, you **must** create your own Python. To do this, simply run the `./build_python_framework` script within the repository.
+
+This process was tested on Catalina only.
+
+```
+./build_python_framework
+
+Cloning relocatable-python tool from github...
+Cloning into '/tmp/relocatable-python-git'...
+remote: Enumerating objects: 28, done.
+remote: Counting objects: 100% (28/28), done.
+remote: Compressing objects: 100% (19/19), done.
+remote: Total 78 (delta 12), reused 19 (delta 9), pack-reused 50
+Unpacking objects: 100% (78/78), done.
+Downloading https://www.python.org/ftp/python/3.8.0/python-3.8.0-macosx10.9.pkg...
+
+...
+
+Done!
+Customized, relocatable framework is at /Library/umad/Python.framework
+Moving Python.framework to umad munki-pkg payload folder
+Taking ownership of the file to not break git
+```
+
 ## Purpose
-A Professional Tool to help users with pre-existing devices enrolled into MDM.
+A Professional Tool to help users with getting pre-existing devices enrolled into MDM.
 
 ## Screenshots
 
@@ -28,13 +61,19 @@ Because of the way git works, umad will not contain the `Logs` folder required f
 In order to create a properly working package, you will need to run the following command:
 `munkipkg --sync /path/to/cloned_repo/mdm/umad`
 
-## Supported mac OS
+## OS Support v1
 The following operating system and versions have been tested.
 - 10.10.0 [Note 1](https://github.com/AnotherToolAppleShouldHaveProvided/umad/issues/11), 10.10.5 - [Note 2](https://github.com/AnotherToolAppleShouldHaveProvided/umad/issues/10)
 - 10.11.0, 10.11.6
 - 10.12.0, 10.12.6 (10.12 is very unreliable with DEP nagging)
 - 10.13.0 10.13.3, 10.13.6
 - 10.14.0
+- 10.15
+
+## OS Support v2 (embedded python)
+The following operating system and versions have been tested with the embedded python.
+- 10.14
+- 10.15
 
 ## Getting started
 To start, you can use the default settings in `/Library/LaunchAgent/com.anothertoolappleshouldhaveprovided.umad.plist`
@@ -73,7 +112,7 @@ This is the bolded portion of the UI towards the top under the ["titletext".](#t
 ```
 
 ### DEP failure text
-If a user has a DEP capable device, but they are passed the enrollment window, they will have an option to manually enroll.
+If a user has a DEP capable device, but they are past the enrollment window, they will have an option to manually enroll.
 
 This is the first set of text above the enrollment button.
 

@@ -6,7 +6,7 @@
 	<string>com.erikng.umad.trigger_nag</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Library/Application Support/umad/Resources/umad_trigger_nag</string>
+		<string>/Library/umad/Resources/umad_trigger_nag</string>
 	</array>
 	<key>KeepAlive</key>
   <dict>

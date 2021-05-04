@@ -10,7 +10,7 @@
 	</array>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Library/Application Support/umad/Resources/umad</string>
+		<string>/Library/umad/Resources/umad</string>
 		<!-- Cutoff Date -->
 		<!--<string>--cutoffdate</string> -->
 		<!--<string>2018-12-31-17:00</string> -->
@@ -89,9 +89,9 @@
 	<key>RunAtLoad</key>
 	<true/>
 	<key>StandardOutPath</key>
-	<string>/Library/Application Support/umad/Logs/umad.log</string>
-	<key>StandardOutPath</key>
-	<string>/Library/Application Support/umad/Logs/umad.log</string>
+	<string>/Library/umad/Logs/umad.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Library/umad/Logs/umad.log</string>
 	<key>StartCalendarInterval</key>
 	<array>
 		<dict>
