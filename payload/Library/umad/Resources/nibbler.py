@@ -1,29 +1,3 @@
-#!/usr/bin/python
-# demo video here:
-# https://www.dropbox.com/s/k0bpekd13muknmz/nibbler%20-%20by%20frogor.mp4?dl=0
-
-# original gist here:
-# https://gist.github.com/pudquick/f27efd1ddcbf57be0d14031a5e692015
-
-# Example script using nibbler:
-
-# from nibbler import *
-#
-# n = Nibbler('/Users/frogor/Desktop/sweet.nib')
-#
-# def test():
-#     print "hi (no quit)"
-#
-# def test2():
-#     print "hi (politely quit)"
-#     n.quit()
-#
-# n.attach(test, 'pushy')
-# n.attach(test2, 'less_pushy')
-#
-# n.hidden = True
-# n.run()
-
 # Use the "Identifier" property of your control in Interface Builder and give
 # your controls a name. Then use the 'attach' method on your Nibbler to link
 # the control to a python function
@@ -111,6 +85,7 @@ class Nibbler(object):
             path = os.path.join(path, 'keyedobjects.nib')
         with open(path, 'rb') as f:
             # get nib bytes
+            buffer = memoryview
             d = buffer(f.read())
         n_obj = NSNib.alloc().initWithNibData_bundle_(d, None)
         placeholder_obj = NSObject.alloc().init()
