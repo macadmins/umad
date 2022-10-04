@@ -666,7 +666,8 @@ def main():
             valid_notifications = [
                 '_system_center_:com.apple.mdmclient',
                 '_SYSTEM_CENTER_:com.apple.mdmclient',
-                '_SYSTEM_CENTER_:com.apple.mdmclient.cloudconfig'
+                '_SYSTEM_CENTER_:com.apple.mdmclient.cloudconfig',
+                'com.apple.mdmclient.usernotifications.v2'
             ]
             if get_os_version() >= LooseVersion('10.10'):
                 # Check for nag event every 10th second for 10 seconds
