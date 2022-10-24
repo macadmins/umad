@@ -45,7 +45,25 @@ def has_dep_activation_record(plist_path):
         if os.path.isfile(bad_record):
             os.remove(bad_record)
         run = subprocess.Popen(cmd, preexec_fn=os.setpgrp)
-    if get_os_version() >= LooseVersion('10.12'):
+    if get_os_version() >= LooseVersion("12.3"):
+        # running cmd on 12.3 will result in err 90% of the time but need to run at least
+        # once to write these files.
+        good_record = '/private/var/db/ConfigurationProfiles/Settings/.cloudConfigRecordFound'
+        bad_record = '/private/var/db/ConfigurationProfiles/Settings/.cloudConfigRecordNotFound'
+        if os.path.exists(bad_record):
+            return False
+        try:
+            with open(good_record, "rb") as file:
+                plist = plistlib.load(file)
+        except:  # noqa
+            return False
+        if "CloudConfigFetchError" in plist:
+            # This happens for invalid serial numbers
+            return False
+        else:
+            copyfile(good_record, plist_path)
+            return True
+    elif get_os_version() >= LooseVersion("10.12") and get_os_version() < LooseVersion("12.3"~):
         if err:
             return False
         try:
